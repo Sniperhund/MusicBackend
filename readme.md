@@ -2,11 +2,43 @@
 
 This is a backend (database, file storage, authentication) for my music website
 
+## Response Format
+
+```json
+{
+    "status": "success",
+    "statusText": "Success message",
+    "data": {
+        "key": "value"
+    }
+}
+```
+
+```json
+{
+    "status": "error",
+    "statusText": "Error message",
+    "data": {
+        "key": "value"
+    }
+}
+```
+
 ## Paths
 
 1. Database
     - Read Data:
         - GET /api/database/{table}
+            - Parameters:
+                - select: string - Select columns (comma separated)
+                - limit: int - Limit the amount of rows returned
+                - offset: int - Offset the rows returned
+                - eq: json - Equal to (column: value)
+                - neq: json - Not equal to (column: value)
+                - gt: json - Greater than (column: value)
+                - gte: json - Greater than or equal to (column: value)
+                - lt: json - Less than (column: value)
+                - lte: json - Less than or equal to (column: value)
         - GET /api/database/{table}/{id}
     - Write Data:
         - POST /api/database/{table}
