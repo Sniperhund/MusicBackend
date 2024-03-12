@@ -153,9 +153,7 @@ All body's is application/json
         - POST /admin/track
             - body:
                 - name: string
-                - artist: string
-                - album: string
-                - duration: integer
+                - album: mongodb id
                 - file: file
     - Create Album:
         - POST /admin/album

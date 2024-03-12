@@ -14,10 +14,10 @@ const genres = new mongoose.Schema({
 	name: String,
 })
 
-export const Genres = mongoose.model("Genres", genres)
+export const Genre = mongoose.model("Genre", genres)
 
-// Songs Schema
-const songs = new mongoose.Schema({
+// Track Schema
+const track = new mongoose.Schema({
 	name: String,
 	album: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -26,7 +26,7 @@ const songs = new mongoose.Schema({
 	audioFile: String,
 })
 
-export const Songs = mongoose.model("Songs", songs)
+export const Track = mongoose.model("Track", track)
 
 // Album Schema
 const album = new mongoose.Schema({
