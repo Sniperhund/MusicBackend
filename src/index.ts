@@ -1,17 +1,26 @@
-import dotenv from "dotenv";
-import express, { Application, Express, Request, Response } from "express";
-import autoroutes from "express-automatic-routes";
+import dotenv from "dotenv"
+import express, { Application, Express, Request, Response } from "express"
+import autoroutes from "express-automatic-routes"
+import mongoose from "mongoose"
 
 //For env File
-dotenv.config();
+dotenv.config()
 
-const app: Application = express();
-const port = process.env.PORT || 8000;
+async function main() {
+	await mongoose.connect("mongodb://localhost:27017/test").catch(console.log)
 
-autoroutes(app, {
-  dir: "./routes/",
-});
+	const app: Application = express()
+	const port = process.env.PORT || 8000
 
-app.listen(port, () => {
-  console.log(`Server is started at http://localhost:${port}`);
-});
+	autoroutes(app, {
+		dir: "./routes/",
+	})
+
+	app.use(express.static("public"))
+
+	app.listen(port, () => {
+		console.log(`Server is started at http://localhost:${port}`)
+	})
+}
+
+main()
