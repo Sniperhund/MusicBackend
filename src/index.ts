@@ -12,11 +12,12 @@ async function main() {
 	const app: Application = express()
 	const port = process.env.PORT || 8000
 
+	app.use(express.static("public"))
+	app.use(express.json())
+
 	autoroutes(app, {
 		dir: "./routes/",
 	})
-
-	app.use(express.static("public"))
 
 	app.listen(port, () => {
 		console.log(`Server is started at http://localhost:${port}`)

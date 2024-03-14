@@ -138,16 +138,26 @@ All body's is application/json
 6. Authentication:
     - User Registration:
         - POST /auth/register
+            - body:
+                - email: string
+                - password: string
+                - name: string
     - User Login:
         - POST /auth/login
-    - User Logout:
-        - POST /auth/logout
+            - body:
+                - email: string
+                - password: string
     - Token Refresh:
         - POST /auth/refresh
+            - body:
+                - refreshToken: string
     - User Profile:
         - GET /auth/user
         - PUT /auth/user
         - DELETE /auth/user
+    - User Verify:
+        - GET /auth/verify
+            - q: string
 7. Admin:
     - Create Track:
         - POST /admin/track
@@ -159,8 +169,7 @@ All body's is application/json
         - POST /admin/album
             - body:
                 - name: string
-                - artist: string
-                - releaseDate: string
+                - artist: mongodb id
                 - cover: file
     - Create Artist:
         - POST /admin/artist

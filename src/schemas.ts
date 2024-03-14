@@ -5,6 +5,26 @@ const userSchema = new mongoose.Schema({
 	name: String,
 	email: String,
 	password: String,
+	role: {
+		type: String,
+		enum: ["user", "admin"],
+		default: "user",
+	},
+	accessToken: String,
+	accessTokenExpire: {
+		type: Date,
+		default: () => Date.now() + 60 * 60 * 24 * 7 * 1000, // 7 days
+	},
+	refreshToken: String,
+	createdAt: {
+		type: Date,
+		default: Date.now,
+	},
+	verifyToken: String,
+	verified: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 export const User = mongoose.model("User", userSchema)
@@ -23,6 +43,10 @@ const track = new mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Album",
 	},
+	artist: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "Artist",
+	},
 	audioFile: String,
 })
 
@@ -35,12 +59,7 @@ const album = new mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "artist",
 	},
-	genre: [
-		{
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "genres",
-		},
-	],
+	cover: String,
 })
 
 export const Album = mongoose.model("Album", album)
@@ -48,6 +67,7 @@ export const Album = mongoose.model("Album", album)
 // Artist Schema
 const artist = new mongoose.Schema({
 	name: String,
+	cover: String,
 })
 
 export const Artist = mongoose.model("Artist", artist)

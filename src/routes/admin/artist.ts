@@ -1,25 +1,23 @@
 import { Application, Request, Response, response } from "express"
 import { Resource } from "express-automatic-routes"
-import { trackUpload } from "../../middleware/upload"
-import { Track } from "../../schemas"
+import { artistCoverUpload } from "../../middleware/upload"
+import { Artist } from "../../schemas"
 
 export default (express: Application) =>
 	<Resource>{
 		post: {
-			middleware: [trackUpload.single("file")],
+			middleware: [artistCoverUpload.single("file")],
 			handler: (request: Request, response: Response) => {
-				let track = new Track({
+				let artist = new Artist({
 					name: request.body.name,
-					album: request.body.album,
-					artist: request.body.artist,
-					audioFile: request.file?.filename,
+					cover: request.file?.filename,
 				})
 
-				track.save()
+				artist.save()
 
 				response.status(200).json({
 					status: "ok",
-					response: track,
+					response: artist,
 				})
 			},
 		},
