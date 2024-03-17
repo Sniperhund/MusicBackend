@@ -1,6 +1,6 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
-import { Track } from "../schemas"
+import { Track } from "../../schemas"
 
 export default (express: Application) =>
 	<Resource>{

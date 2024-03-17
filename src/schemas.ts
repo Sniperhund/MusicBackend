@@ -65,7 +65,7 @@ const album = new mongoose.Schema({
 	name: String,
 	artist: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref: "artist",
+		ref: "Artist",
 	},
 	cover: String,
 })
