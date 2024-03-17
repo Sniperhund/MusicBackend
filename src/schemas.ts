@@ -25,6 +25,12 @@ const userSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false,
 	},
+	savedTracks: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Track",
+		},
+	],
 })
 
 export const User = mongoose.model("User", userSchema)
@@ -50,6 +56,8 @@ const track = new mongoose.Schema({
 	audioFile: String,
 })
 
+track.index({ name: "text" })
+
 export const Track = mongoose.model("Track", track)
 
 // Album Schema
@@ -62,6 +70,8 @@ const album = new mongoose.Schema({
 	cover: String,
 })
 
+album.index({ name: "text" })
+
 export const Album = mongoose.model("Album", album)
 
 // Artist Schema
@@ -69,5 +79,7 @@ const artist = new mongoose.Schema({
 	name: String,
 	cover: String,
 })
+
+artist.index({ name: "text" })
 
 export const Artist = mongoose.model("Artist", artist)

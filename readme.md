@@ -28,36 +28,6 @@ This is a backend (database, file storage, authentication) for my music website
 
 All body's is application/json
 
-1. Tracks (All request require authentication token):
-    - Get Track:
-        - GET /tracks/:id
-    - Get Several Tracks:
-        - GET /tracks/
-            - body:
-                - ids: array of strings
-    - Get User's Saved Tracks:
-        - GET /user/tracks
-            - limit: integer
-            - offset: integer (default 0)
-    - Save Tracks for Current User:
-        - PUT /user/tracks
-            - body:
-                - ids: array of strings
-    - Remove Tracks from Current User:
-        - DELETE /user/tracks
-            - body:
-                - ids: array of strings
-    - Check User's Saved Tracks:
-        - GET /user/tracks/contains
-            - body:
-                - ids: array of strings
-2. Search (All request require authentication token):
-    - Search for Item:
-        - GET /search
-            - query: string
-            - type: string (track, album, artist)
-            - limit: integer
-            - offset: integer (default 0)
 3. Playlist (All request require authentication token):
     - Get Playlist:
         - GET /playlist/:id
@@ -158,21 +128,3 @@ All body's is application/json
     - User Verify:
         - GET /auth/verify
             - q: string
-7. Admin:
-    - Create Track:
-        - POST /admin/track
-            - body:
-                - name: string
-                - album: mongodb id
-                - file: file
-    - Create Album:
-        - POST /admin/album
-            - body:
-                - name: string
-                - artist: mongodb id
-                - cover: file
-    - Create Artist:
-        - POST /admin/artist
-            - body:
-                - name: string
-                - cover: file

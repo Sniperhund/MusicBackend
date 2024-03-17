@@ -11,7 +11,7 @@ export default (express: Application) =>
 			})
 
 			if (!user)
-				return response.status(404).json({
+				return response.status(400).json({
 					status: "error",
 					message: "User not found",
 				})
