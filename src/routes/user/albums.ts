@@ -1,8 +1,9 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import authenticate from "../../middleware/auth"
-import { User } from "../../schemas"
+import { Album, User } from "../../schemas"
 import { Schema } from "mongoose"
+import album from "../admin/album"
 
 export default (express: Application) =>
 	<Resource>{
@@ -12,30 +13,29 @@ export default (express: Application) =>
 				? parseInt(request.query.limit as string)
 				: 10
 
-			//! The offset may not working (I'm not sure since I only have one song in the database and lazy)
-			const offset = request.query.offset
-				? parseInt(request.query.offset as string)
-				: 0
-
-			const savedTracks = await User.findById(request.body.user._id)
+			const savedTracksIds = await User.findById(request.body.user._id)
 				.select("savedTracks")
-				.populate({
-					path: "savedTracks",
-					options: {
-						limit: limit,
-						skip: offset,
-					},
-				})
+				.populate("savedTracks")
 
-			if (!savedTracks)
+			if (!savedTracksIds)
 				return response.status(400).json({
 					status: "error",
-					message: "No saved tracks found",
+					message: "No saved albums found",
 				})
+
+			const albumIds: any[] = savedTracksIds.savedTracks.map(
+				(track: any) => {
+					return track.album
+				}
+			)
+
+			const savedAlbums = await Album.find({
+				_id: { $in: albumIds },
+			})
 
 			response.status(200).json({
 				status: "ok",
-				savedTracks: savedTracks.savedTracks,
+				savedAlbums,
 			})
 		},
 		put: async (request: Request, response: Response) => {

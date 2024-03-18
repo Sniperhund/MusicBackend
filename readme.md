@@ -67,21 +67,12 @@ All body's is application/json
                 - name: string
                 - public: boolean
                 - description: string
-4. Album (All request reqyure authentication token):
-    - Get User's Saved Albums: // All albums where the user has at least one track saved from
-        - GET /user/albums
-            - limit: integer
-            - offset: integer (default 0)
-    - Check User's Saved Albums:
-        - GET /user/albums/contains
-            - body:
-                - ids: array of strings
-5. Artist (All request require authentication token):
+4. Artist (All request require authentication token):
     - Get Artist's Albums:
         - GET /artist/:id/albums
             - limit: integer
             - offset: integer (default 0)
-6. Authentication:
+5. Authentication:
     - User Profile:
         - GET /auth/user
         - PUT /auth/user
