@@ -1,10 +1,7 @@
-import dotenv from "dotenv"
-import express, { Application, Express, Request, Response } from "express"
+import { Application } from "express"
+const express = require("express")
 import autoroutes from "express-automatic-routes"
 import mongoose from "mongoose"
-
-//For env File
-dotenv.config()
 
 async function main() {
 	await mongoose.connect("mongodb://localhost:27017/test").catch(console.log)
