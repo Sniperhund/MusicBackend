@@ -2,13 +2,15 @@ import multer from "multer"
 import fs from "fs"
 import { v4 as uuidv4 } from "uuid"
 
+const uploadDir = process.env.UPLOAD_DIR || "public"
+
 const track = multer.diskStorage({
 	destination: function (req: any, file: any, cb: any) {
-		if (!fs.existsSync("public/track")) {
-			fs.mkdirSync("public/track")
+		if (!fs.existsSync(uploadDir + "/track")) {
+			fs.mkdirSync(uploadDir + "/track")
 		}
 
-		cb(null, "public/track")
+		cb(null, uploadDir + "/track")
 	},
 	filename: function (req: any, file: any, cb: any) {
 		const uuid = uuidv4()
@@ -24,11 +26,11 @@ export const trackUpload = multer({ storage: track })
 
 const albumCover = multer.diskStorage({
 	destination: function (req: any, file: any, cb: any) {
-		if (!fs.existsSync("public/albumCover")) {
-			fs.mkdirSync("public/albumCover")
+		if (!fs.existsSync(uploadDir + "/albumCover")) {
+			fs.mkdirSync(uploadDir + "/albumCover")
 		}
 
-		cb(null, "public/albumCover")
+		cb(null, uploadDir + "/albumCover")
 	},
 	filename: function (req: any, file: any, cb: any) {
 		const uuid = uuidv4()
@@ -44,11 +46,11 @@ export const albumCoverUpload = multer({ storage: albumCover })
 
 const artistCover = multer.diskStorage({
 	destination: function (req: any, file: any, cb: any) {
-		if (!fs.existsSync("public/artistCover")) {
-			fs.mkdirSync("public/artistCover")
+		if (!fs.existsSync(uploadDir + "/artistCover")) {
+			fs.mkdirSync(uploadDir + "/artistCover")
 		}
 
-		cb(null, "public/artistCover")
+		cb(null, uploadDir + "/artistCover")
 	},
 	filename: function (req: any, file: any, cb: any) {
 		const uuid = uuidv4()

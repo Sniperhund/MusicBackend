@@ -4,7 +4,8 @@ import autoroutes from "express-automatic-routes"
 import mongoose from "mongoose"
 
 async function main() {
-	await mongoose.connect("mongodb://localhost:27017/test").catch(console.log)
+	if (!process.env.MONGODB_URL) throw new Error("MONGODB_URL is not defined")
+	await mongoose.connect(process.env.MONGODB_URL).catch(console.log)
 
 	const app: Application = express()
 	const port = process.env.PORT || 8000
@@ -17,7 +18,7 @@ async function main() {
 	})
 
 	app.listen(port, () => {
-		console.log(`Server is started at http://localhost:${port}`)
+		console.log(`Server is started at ${process.env.PUBLIC_URL}:${port}`)
 	})
 }
 
