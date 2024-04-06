@@ -12,7 +12,19 @@ export default (express: Application) =>
 
 				const uuid = uuidv4()
 
-				let user = new User({
+				console.log(request.body.email.toLowerCase())
+
+				let user = await User.findOne({
+					email: request.body.email.toLowerCase(),
+				})
+
+				if (user)
+					return response.status(400).json({
+						status: "error",
+						message: "Email already in use",
+					})
+
+				user = new User({
 					name: request.body.name,
 					email: request.body.email.toLowerCase(),
 					password: request.body.password,

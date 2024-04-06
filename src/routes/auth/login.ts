@@ -16,10 +16,16 @@ export default (express: Application) =>
 						message: "User not found",
 					})
 
-				if (!user.password === request.body.password)
+				if (user.password !== request.body.password)
 					return response.status(400).json({
 						status: "error",
 						message: "Invalid password",
+					})
+
+				if (!user.accessToken)
+					return response.status(400).json({
+						status: "error",
+						message: "You have to verify before you can login",
 					})
 
 				response.status(200).json({
