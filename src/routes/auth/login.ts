@@ -5,24 +5,36 @@ import { User } from "../../schemas"
 export default (express: Application) =>
 	<Resource>{
 		post: async (request: Request, response: Response) => {
-			let user = await User.findOne({ email: request.body.email })
-
-			if (!user)
-				return response.status(400).json({
-					status: "error",
-					message: "User not found",
+			try {
+				let user = await User.findOne({
+					email: request.body.email.toLowerCase(),
 				})
 
-			if (!user.password === request.body.password)
-				return response.status(400).json({
-					status: "error",
-					message: "Invalid password",
-				})
+				if (!user)
+					return response.status(400).json({
+						status: "error",
+						message: "User not found",
+					})
 
-			response.status(200).json({
-				status: "ok",
-				refreshToken: user.refreshToken,
-				accessToken: user.accessToken,
-			})
+				if (!user.password === request.body.password)
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid password",
+					})
+
+				response.status(200).json({
+					status: "ok",
+					refreshToken: user.refreshToken,
+					accessToken: user.accessToken,
+				})
+			} catch (error) {
+				if (typeof error === "object" && error && "message" in error) {
+					return response.status(404).json({ message: error.message })
+				} else {
+					return response
+						.status(500)
+						.json({ message: "An unknown error occurred" })
+				}
+			}
 		},
 	}

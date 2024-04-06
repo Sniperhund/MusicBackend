@@ -7,35 +7,47 @@ import { v4 as uuidv4 } from "uuid"
 export default (express: Application) =>
 	<Resource>{
 		post: async (request: Request, response: Response) => {
-			const frontendUrl = request.body.frontendUrl
+			try {
+				const frontendUrl = request.body.frontendUrl
 
-			const uuid = uuidv4()
+				const uuid = uuidv4()
 
-			let user = new User({
-				name: request.body.name,
-				email: request.body.email,
-				password: request.body.password,
-				verifyToken: uuid,
-			})
+				let user = new User({
+					name: request.body.name,
+					email: request.body.email.toLowerCase(),
+					password: request.body.password,
+					verifyToken: uuid,
+				})
 
-			await user.save()
+				await user.save()
 
-			const resend = new Resend("re_AQLhfBYq_MTzDvCu3FRDvsyHcRi9kbm8P")
+				const resend = new Resend(
+					"re_AQLhfBYq_MTzDvCu3FRDvsyHcRi9kbm8P"
+				)
 
-			resend.emails.send({
-				from: "noreply@lucasskt.dk",
-				to: request.body.email,
-				subject: "Verify your email",
-				html:
-					'<p>Congrats on creating an account <a href="' +
-					frontendUrl +
-					"?q=" +
-					uuid +
-					'">Verify here.</a></p>',
-			})
+				resend.emails.send({
+					from: "noreply@lucasskt.dk",
+					to: request.body.email,
+					subject: "Verify your email",
+					html:
+						'<p>Congrats on creating an account <a href="' +
+						frontendUrl +
+						"?q=" +
+						uuid +
+						'">Verify here.</a></p>',
+				})
 
-			response.status(200).json({
-				status: "ok",
-			})
+				response.status(200).json({
+					status: "ok",
+				})
+			} catch (error) {
+				if (typeof error === "object" && error && "message" in error) {
+					return response.status(404).json({ message: error.message })
+				} else {
+					return response
+						.status(500)
+						.json({ message: "An unknown error occurred" })
+				}
+			}
 		},
 	}

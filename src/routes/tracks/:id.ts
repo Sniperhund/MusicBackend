@@ -7,10 +7,20 @@ export default (express: Application) =>
 	<Resource>{
 		middleware: [authenticate],
 		get: async (request: Request, response: Response) => {
-			const track = await Track.findById(request.params.id)
-				.populate("album")
-				.populate("artist")
+			try {
+				const track = await Track.findById(request.params.id)
+					.populate("album")
+					.populate("artist")
 
-			response.status(200).json(track)
+				response.status(200).json(track)
+			} catch (error) {
+				if (typeof error === "object" && error && "message" in error) {
+					return response.status(404).json({ message: error.message })
+				} else {
+					return response
+						.status(500)
+						.json({ message: "An unknown error occurred" })
+				}
+			}
 		},
 	}

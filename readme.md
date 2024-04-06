@@ -24,6 +24,8 @@ This is a backend (database, file storage, authentication) for my music website
 }
 ```
 
+## Remember to add try, catch block to rest of paths
+
 ## Paths
 
 All body's is application/json
