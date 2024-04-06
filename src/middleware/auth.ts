@@ -11,7 +11,7 @@ const authenticate = async (
 	if (!user) return res.status(401).json({ message: "Unauthorized" })
 
 	if (user.accessTokenExpire < new Date(Date.now()))
-		return res.status(401).json({ message: "Access token expired" })
+		return res.status(406).json({ message: "Access token expired" })
 
 	req.body.user = user
 
