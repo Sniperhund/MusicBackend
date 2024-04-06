@@ -37,6 +37,7 @@ export default (express: Application) =>
 				status: "ok",
 				accessToken: user.accessToken,
 				refreshToken: user.refreshToken,
+				accessTokenExpire: user.accessTokenExpire,
 			})
 		},
 	}

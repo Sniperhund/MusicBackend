@@ -17,12 +17,16 @@ export default (express: Application) =>
 				})
 
 			user.accessToken = uuidv4()
+			user.accessTokenExpire = new Date(
+				Date.now() + 60 * 60 * 24 * 7 * 1000
+			)
 
 			await user.save()
 
 			response.status(200).json({
 				status: "ok",
 				accessToken: user.accessToken,
+				accessTokenExpire: user.accessTokenExpire,
 			})
 		},
 	}

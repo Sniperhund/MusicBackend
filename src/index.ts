@@ -18,7 +18,7 @@ async function main() {
 	})
 
 	app.listen(port, () => {
-		console.log(`Server is started at ${process.env.PUBLIC_URL}:${port}`)
+		console.log(`Server is started at ${process.env.PUBLIC_URL}`)
 	})
 }
 
