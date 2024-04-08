@@ -2,6 +2,7 @@ import { Application } from "express"
 const express = require("express")
 import autoroutes from "express-automatic-routes"
 import mongoose from "mongoose"
+import cors from "cors"
 
 async function main() {
 	if (!process.env.MONGODB_URL) throw new Error("MONGODB_URL is not defined")
@@ -10,6 +11,7 @@ async function main() {
 	const app: Application = express()
 	const port = process.env.PORT || 8000
 
+	app.use(cors())
 	app.use(express.static("public"))
 	app.use(express.json())
 
