@@ -3,6 +3,9 @@ const express = require("express")
 import autoroutes from "express-automatic-routes"
 import mongoose from "mongoose"
 import cors from "cors"
+import { config } from "dotenv"
+
+config()
 
 async function main() {
 	if (!process.env.MONGODB_URL) throw new Error("MONGODB_URL is not defined")

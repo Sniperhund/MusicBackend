@@ -68,6 +68,10 @@ const album = new mongoose.Schema({
 		ref: "Artist",
 	},
 	cover: String,
+	genre: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "Genre",
+	},
 })
 
 album.index({ name: "text" })
