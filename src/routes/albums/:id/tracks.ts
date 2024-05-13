@@ -18,6 +18,8 @@ export default (express: Application) =>
 						? parseInt(request.query.offset as string)
 						: 0
 				)
+				.populate("album")
+				.populate("artist")
 
 			if (!tracks)
 				return response.status(400).json({
