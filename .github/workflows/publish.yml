@@ -33,6 +33,7 @@ jobs:
 
     - name: Build and push Docker image
       run: |
-        IMAGE_NAME=ghcr.io/${{ github.repository }}/my-app:latest
+        REPO_NAME=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')
+        IMAGE_NAME=ghcr.io/$REPO_NAME/my-app:latest
         docker build -t $IMAGE_NAME .
         docker push $IMAGE_NAME
