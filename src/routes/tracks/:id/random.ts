@@ -25,17 +25,26 @@ export default (express: Application) =>
 						from: "albums",
 						localField: "album",
 						foreignField: "_id",
-						as: "albumInfo",
+						as: "album",
 					},
 				},
 				{
-					$unwind: "$albumInfo",
+					$unwind: "$album",
+				},
+				{
+					$lookup: {
+						from: "artists",
+						localField: "album.artist",
+						foreignField: "_id",
+						as: "artist",
+					},
+				},
+				{
+					$unwind: "$artist",
 				},
 				{
 					$match: {
-						"albumInfo.genres": new mongoose.Types.ObjectId(
-							genreId
-						),
+						"album.genres": new mongoose.Types.ObjectId(genreId),
 					},
 				},
 				{ $sample: { size: limit } },
