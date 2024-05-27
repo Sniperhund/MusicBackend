@@ -6,19 +6,36 @@ import { Track } from "../../schemas"
 import getMP3Duration from "get-mp3-duration"
 import auth from "../../middleware/auth"
 import * as fs from "fs"
+import Ffmpeg from "fluent-ffmpeg"
 
 const uploadDir = process.env.UPLOAD_DIR || "public"
+
+function getDuration(fileLocation: any) {
+	return new Promise((resolve, reject) => {
+		Ffmpeg.ffprobe(fileLocation, (err, metadata) => {
+			if (err) {
+				return reject(err)
+			}
+
+			if (metadata.format.duration)
+				return resolve(metadata.format.duration)
+
+			reject("Nul og nix")
+		})
+	})
+}
 
 export default (express: Application) =>
 	<Resource>{
 		post: {
 			middleware: [auth, trackUpload.single("file")],
-			handler: (request: Request, response: Response) => {
+			handler: async (request: Request, response: Response) => {
 				const fileLocation =
 					uploadDir + "/track/" + request.file?.filename
 
-				const buffer = fs.readFileSync(fileLocation)
-				const duration = Math.floor(getMP3Duration(buffer) / 1000)
+				let duration = Math.floor(
+					(await getDuration(fileLocation)) as number
+				)
 
 				let track = new Track({
 					name: request.body.name,
