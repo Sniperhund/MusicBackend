@@ -29,6 +29,28 @@ export default (express: Application) =>
 			const pipeline = [
 				{ $match: { genres: genreId } },
 				{ $sample: { size: limit } },
+				{
+					$lookup: {
+						from: "artists",
+						localField: "artist",
+						foreignField: "_id",
+						as: "artistInfo",
+					},
+				},
+				{ $unwind: "$artistInfo" },
+				{
+					$project: {
+						_id: 1,
+						name: 1,
+						cover: 1,
+						genres: 1,
+						artist: {
+							_id: "$artistInfo._id",
+							name: "$artistInfo.name",
+							cover: "$artistInfo.cover",
+						},
+					},
+				},
 			]
 
 			const randomAlbums = await Album.aggregate(pipeline)
