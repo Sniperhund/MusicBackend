@@ -8,32 +8,26 @@ export default (express: Application) =>
 	<Resource>{
 		middleware: [authenticate],
 		get: async (request: Request, response: Response) => {
-			const excludeIds = request.query.exclude
-				? (request.query.exclude as string)
-						.split(",")
-						.map((id) => new mongoose.Types.ObjectId(id))
-				: []
+			const limit = request.query.limit
+				? parseInt(request.query.limit as string)
+				: 10
 
-			const pipeline = []
-
-			console.log(excludeIds)
-
-			// Add match stage to exclude the specified genres if excludeIds are provided
-			if (excludeIds.length > 0) {
-				pipeline.push({
-					$match: { _id: { $nin: excludeIds } },
-				})
+			// Validate the limit
+			if (isNaN(limit) || limit <= 0) {
+				return response
+					.status(422)
+					.json({ error: "Invalid limit value" })
 			}
 
-			// Add sample stage to get a random genre
-			pipeline.push({ $sample: { size: 1 } })
+			// Aggregate and get random genres
+			const randomGenres = await Genre.aggregate([
+				{ $sample: { size: limit } },
+			])
 
-			const randomGenre = await Genre.aggregate(pipeline)
-
-			if (randomGenre.length === 0) {
+			if (randomGenres.length === 0) {
 				return response.status(404).json({ error: "No genres found" })
 			}
 
-			return response.status(200).json(randomGenre[0])
+			return response.status(200).json(randomGenres)
 		},
 	}
