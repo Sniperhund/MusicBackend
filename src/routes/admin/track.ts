@@ -17,6 +17,8 @@ function getDuration(fileLocation: any) {
 				return reject(err)
 			}
 
+			console.log(metadata.format)
+
 			if (metadata.format.duration)
 				return resolve(metadata.format.duration)
 
