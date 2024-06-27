@@ -1,5 +1,5 @@
 import multer from "multer"
-import SharpMulter from "sharp-multer"
+const SharpMulter: any = require("sharp-multer")
 import fs from "fs"
 import { v4 as uuidv4 } from "uuid"
 
