@@ -1,4 +1,5 @@
 import multer from "multer"
+import SharpMulter from "sharp-multer"
 import fs from "fs"
 import { v4 as uuidv4 } from "uuid"
 
@@ -24,7 +25,7 @@ const track = multer.diskStorage({
 
 export const trackUpload = multer({ storage: track })
 
-const albumCover = multer.diskStorage({
+const albumCover = SharpMulter({
 	destination: function (req: any, file: any, cb: any) {
 		if (!fs.existsSync(uploadDir + "/albumCover")) {
 			fs.mkdirSync(uploadDir + "/albumCover")
@@ -32,19 +33,25 @@ const albumCover = multer.diskStorage({
 
 		cb(null, uploadDir + "/albumCover")
 	},
-	filename: function (req: any, file: any, cb: any) {
+	filename: function (currentFilename: any, options: any) {
 		const uuid = uuidv4()
 
-		cb(
-			null,
-			uuid + file.originalname.slice(file.originalname.lastIndexOf("."))
+		console.log(
+			uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
 		)
+
+		return uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
+	},
+	imageOptions: {
+		fileFormat: "jpg",
+		quality: 80,
+		resize: { width: 500, height: 500 },
 	},
 })
 
 export const albumCoverUpload = multer({ storage: albumCover })
 
-const artistCover = multer.diskStorage({
+const artistCover = SharpMulter({
 	destination: function (req: any, file: any, cb: any) {
 		if (!fs.existsSync(uploadDir + "/artistCover")) {
 			fs.mkdirSync(uploadDir + "/artistCover")
@@ -52,13 +59,19 @@ const artistCover = multer.diskStorage({
 
 		cb(null, uploadDir + "/artistCover")
 	},
-	filename: function (req: any, file: any, cb: any) {
+	filename: function (currentFilename: any, options: any) {
 		const uuid = uuidv4()
 
-		cb(
-			null,
-			uuid + file.originalname.slice(file.originalname.lastIndexOf("."))
+		console.log(
+			uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
 		)
+
+		return uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
+	},
+	imageOptions: {
+		fileFormat: "jpg",
+		quality: 80,
+		resize: { width: 500, height: 500 },
 	},
 })
 
