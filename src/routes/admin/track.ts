@@ -22,7 +22,7 @@ function getDuration(fileLocation: any) {
 			if (metadata.format.duration)
 				return resolve(metadata.format.duration)
 
-			reject("Nul og nix")
+			reject(0)
 		})
 	})
 }

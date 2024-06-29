@@ -8,6 +8,32 @@ export default (express: Application) =>
 	<Resource>{
 		post: async (request: Request, response: Response) => {
 			try {
+				if (process.env.TEST) {
+					console.warn("Test mode is enabled")
+
+					let user = new User({
+						name: request.body.name,
+						email: request.body.email.toLowerCase(),
+						password: request.body.password,
+						verified: true,
+						accessToken: uuidv4(),
+						accessTokenExpire: new Date(
+							Date.now() + 60 * 60 * 24 * 7 * 1000
+						),
+						refreshToken: uuidv4(),
+						role: "admin",
+					})
+
+					await user.save()
+
+					return response.status(200).json({
+						status: "ok",
+						message:
+							"Test mode is enabled, please disable if not in testing",
+						user,
+					})
+				}
+
 				const frontendUrl = request.body.frontendUrl
 
 				const uuid = uuidv4()
@@ -54,7 +80,7 @@ export default (express: Application) =>
 				})
 			} catch (error) {
 				if (typeof error === "object" && error && "message" in error) {
-					return response.status(404).json({ message: error.message })
+					return response.status(500).json({ message: error.message })
 				} else {
 					return response
 						.status(500)

@@ -15,7 +15,7 @@ export default (express: Application) =>
 				response.status(200).json(track)
 			} catch (error) {
 				if (typeof error === "object" && error && "message" in error) {
-					return response.status(404).json({ message: error.message })
+					return response.status(500).json({ message: error.message })
 				} else {
 					return response
 						.status(500)

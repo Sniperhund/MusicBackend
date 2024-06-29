@@ -7,11 +7,12 @@ import { config } from "dotenv"
 
 config()
 
+let app: Application = express()
+
 async function main() {
 	if (!process.env.MONGODB_URL) throw new Error("MONGODB_URL is not defined")
 	await mongoose.connect(process.env.MONGODB_URL).catch(console.log)
 
-	const app: Application = express()
 	const port = process.env.PORT || 8000
 
 	app.use(cors())
@@ -28,3 +29,5 @@ async function main() {
 }
 
 main()
+
+export default app
