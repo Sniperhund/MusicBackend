@@ -36,10 +36,6 @@ const albumCover = SharpMulter({
 	filename: function (currentFilename: any, options: any) {
 		const uuid = uuidv4()
 
-		console.log(
-			uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
-		)
-
 		return uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
 	},
 	imageOptions: {
@@ -61,10 +57,6 @@ const artistCover = SharpMulter({
 	},
 	filename: function (currentFilename: any, options: any) {
 		const uuid = uuidv4()
-
-		console.log(
-			uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
-		)
 
 		return uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
 	},

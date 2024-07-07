@@ -38,8 +38,6 @@ export default (express: Application) =>
 
 				const uuid = uuidv4()
 
-				console.log(request.body.email.toLowerCase())
-
 				let user = await User.findOne({
 					email: request.body.email.toLowerCase(),
 				})
