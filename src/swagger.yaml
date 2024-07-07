@@ -1,0 +1,135 @@
+openapi: 3.1.0
+info:
+    title: Music Backend
+    version: "0.0.1"
+    description: |
+        My own little music backend for my music frontend 😎
+
+        Please do not use the **Try it out** button
+    license:
+        name: Apache 2.0
+        url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+    - url: GETS REPLACED
+      description: Local copy
+    - url: https://api.lucasskt.dk/
+      description: Production server (uses live data)
+   
+paths:
+    /admin/album:
+        post:
+            summary: Add an album
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                artists:
+                                    type: array
+                                    description: String ids
+                                cover:
+                                    type: file
+                                    format: binary
+                                    description: image/*
+                                genres:
+                                    type: array
+                                    description: String ids 
+                            required:
+                                - name
+                                - artists
+                                - cover
+                                - genres
+                        encoding:
+                            cover:
+                                contentType: image/*
+
+components:
+    schemas:
+        User:
+            type: object
+            properties:
+                _id:
+                    type: string
+                name:
+                    type: string
+                email:
+                    type: string
+                password:
+                    type: string
+                role:
+                    type: string
+                    enum:
+                        - user
+                        - admin
+                    default: user
+                accessToken:
+                    type: string
+                accessTokenExpire:
+                    type: Date
+                refreshToken:
+                    type: string
+                refreshTokenExpire:
+                    type: Date
+                createdAt:
+                    type: Date
+                verifyToken:
+                    type: string
+                verified:
+                    type: boolean
+                    default: false
+                savedTracks:
+                    type: array
+                    items:
+                        type: string
+                        description: ID of track
+        Track:
+            type: object
+            properties:
+                _id:
+                    type: string
+                name:
+                    type: string
+                album:
+                    type: string
+                    description: ID of album
+                artists:
+                    type: array
+                    items:
+                        type: string
+                        description: ID of artist
+
+        Album:
+            type: object
+            properties:
+                _id:
+                    type: string
+                name:
+                    type: string
+                artists:
+                    type: array
+                    items:
+                        type: string
+                        description: ID of artist
+                cover:
+                    type: string
+                genres:
+                    type: array
+                    items:
+                        type: string
+                        description: ID of genre
+        
+        Artist:
+            type: object
+            properties:
+                _id:
+                    type: string
+                name:
+                    type: string
+                cover:
+                    type: string
+                        
