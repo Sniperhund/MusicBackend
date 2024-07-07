@@ -1,16 +1,12 @@
-import { Application, Request, Response, response } from "express"
+import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import { trackUpload } from "../../middleware/upload"
 import { Track } from "../../schemas"
-// @ts-ignore
-import getMP3Duration from "get-mp3-duration"
 import auth from "../../middleware/auth"
-import * as fs from "fs"
 import Ffmpeg from "fluent-ffmpeg"
 import cleanFile from "../../utils/cleanFile"
-import logError from "../../utils/Logerror"
 import mongoose from "mongoose"
-import { log } from "../../utils/logger"
+import logError from "../../utils/logError"
 
 const uploadDir = process.env.UPLOAD_DIR || "public"
 
