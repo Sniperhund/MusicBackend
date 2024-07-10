@@ -1,31 +1,32 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
-import { Album, Artist, Track, Genre } from "../../../schemas"
-import authenticate from "../../../middleware/auth"
+import { Album } from "../../../schemas"
+import auth from "../../../middleware/auth"
 import mongoose from "mongoose"
 
 export default (express: Application) =>
 	<Resource>{
-		middleware: [authenticate],
+		middleware: [auth],
 		get: async (request: Request, response: Response) => {
+			if (!mongoose.Types.ObjectId.isValid(request.params.id)) {
+				return response.status(400).json({
+					status: "error",
+					message: "Invalid id",
+				})
+			}
+
 			const genreId = new mongoose.Types.ObjectId(request.params.id)
 			const limit = request.query.limit
 				? parseInt(request.query.limit as string)
 				: 10
 
-			// Validate the limit
 			if (isNaN(limit) || limit <= 0) {
-				return response
-					.status(422)
-					.json({ error: "Invalid limit value" })
+				return response.status(400).json({
+					status: "error",
+					message: "Invalid limit",
+				})
 			}
 
-			// Validate the genre ID
-			if (!mongoose.Types.ObjectId.isValid(request.params.id)) {
-				return response.status(422).json({ error: "Invalid genre ID" })
-			}
-
-			// Build the aggregation pipeline
 			const pipeline = [
 				{ $match: { genres: genreId } },
 				{ $sample: { size: limit } },
@@ -56,9 +57,15 @@ export default (express: Application) =>
 			const randomAlbums = await Album.aggregate(pipeline)
 
 			if (randomAlbums.length === 0) {
-				return response.status(404).json({ error: "No albums found" })
+				return response.status(404).json({
+					status: "error",
+					message: "No albums found",
+				})
 			}
 
-			response.status(200).json(randomAlbums)
+			response.status(200).json({
+				status: "ok",
+				response: randomAlbums,
+			})
 		},
 	}
