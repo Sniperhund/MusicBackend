@@ -30,8 +30,14 @@ export default (express: Application) =>
 		post: {
 			middleware: [trackUpload.single("file"), auth],
 			handler: async (request: Request, response: Response) => {
-				const fileLocation =
-					uploadDir + "track/" + request.file?.filename
+				if (request.body.user.role != "admin") {
+					return response.status(403).json({
+						status: "error",
+						message: "Unauthorized",
+					})
+				}
+
+				const fileLocation = request.file?.path as string
 
 				if (!request.body.name) {
 					cleanFile(fileLocation)

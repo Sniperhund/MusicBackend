@@ -9,17 +9,17 @@ export default (express: Application) =>
 		post: {
 			middleware: [upload.none(), auth],
 			handler: async (request: Request, response: Response) => {
+				if (request.body.user.role != "admin") {
+					return response.status(403).json({
+						status: "error",
+						message: "Unauthorized",
+					})
+				}
+
 				if (!request.body.name) {
 					return response.status(400).json({
 						status: "error",
 						message: "Name is required",
-					})
-				}
-
-				if (request.body.user.role != "admin") {
-					return response.status(401).json({
-						status: "error",
-						message: "Unauthorized",
 					})
 				}
 
