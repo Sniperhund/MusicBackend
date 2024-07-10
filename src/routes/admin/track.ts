@@ -28,81 +28,61 @@ function getDuration(fileLocation: any) {
 export default (express: Application) =>
 	<Resource>{
 		post: {
-			middleware: [auth, trackUpload.single("file")],
+			middleware: [trackUpload.single("file"), auth],
 			handler: async (request: Request, response: Response) => {
-				try {
-					const fileLocation =
-						uploadDir + "track/" + request.file?.filename
+				const fileLocation =
+					uploadDir + "track/" + request.file?.filename
 
-					if (!request.body.name) {
-						cleanFile(fileLocation)
-						return response.status(400).json({
-							status: "error",
-							message: "Name is required",
-						})
-					}
-
-					if (!mongoose.Types.ObjectId.isValid(request.body.album)) {
-						cleanFile(fileLocation)
-						return response.status(400).json({
-							status: "error",
-							message: "Invalid album id",
-						})
-					}
-
-					if (!mongoose.Types.ObjectId.isValid(request.body.artist)) {
-						cleanFile(fileLocation)
-						return response.status(400).json({
-							status: "error",
-							message: "Invalid artist id",
-						})
-					}
-
-					if (!request.file) {
-						cleanFile(fileLocation)
-						return response.status(400).json({
-							status: "error",
-							message: "File is required",
-						})
-					}
-
-					let duration = Math.floor(
-						(await getDuration(fileLocation)) as number
-					)
-
-					let track = new Track({
-						name: request.body.name,
-						album: request.body.album,
-						artist: request.body.artist,
-						audioFile: request.file?.filename,
-						durationInSeconds: duration,
-					})
-
-					await track.save()
-
-					response.status(200).json({
-						status: "ok",
-						response: track,
-					})
-				} catch (error: any) {
-					if (error) {
-						const id = logError(error.message)
-
-						const fileLocation =
-							uploadDir + "track/" + request.file?.filename
-
-						cleanFile(fileLocation)
-
-						return response.status(500).json({
-							status: "error",
-							errorId: id,
-						})
-					}
-
-					return response.status(500).json({
+				if (!request.body.name) {
+					cleanFile(fileLocation)
+					return response.status(400).json({
 						status: "error",
+						message: "Name is required",
 					})
 				}
+
+				if (!mongoose.Types.ObjectId.isValid(request.body.album)) {
+					cleanFile(fileLocation)
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid album id",
+					})
+				}
+
+				if (!mongoose.Types.ObjectId.isValid(request.body.artist)) {
+					cleanFile(fileLocation)
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid artist id",
+					})
+				}
+
+				if (!request.file) {
+					cleanFile(fileLocation)
+					return response.status(400).json({
+						status: "error",
+						message: "File is required",
+					})
+				}
+
+				let duration = Math.floor(
+					(await getDuration(fileLocation)) as number
+				)
+
+				let track = new Track({
+					name: request.body.name,
+					album: request.body.album,
+					artist: request.body.artist,
+					audioFile: request.file?.filename,
+					durationInSeconds: duration,
+				})
+
+				await track.save()
+
+				response.status(201).json({
+					status: "ok",
+					response: track,
+				})
 			},
 		},
 	}
