@@ -68,3 +68,7 @@ const artistCover = SharpMulter({
 })
 
 export const artistCoverUpload = multer({ storage: artistCover })
+
+// Use this for getting fields
+const storage = multer.memoryStorage()
+export const upload = multer({ storage: storage })
