@@ -20,7 +20,7 @@ export default (express: Application) =>
 				? parseInt(request.query.limit as string)
 				: 10
 
-			if (isNaN(limit) || limit <= 0) {
+			if (isNaN(limit) || limit < 0) {
 				return response.status(400).json({
 					status: "error",
 					message: "Invalid limit",
