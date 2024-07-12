@@ -23,6 +23,17 @@ export default (express: Application) =>
 					})
 				}
 
+				const genreExists = await Genre.findOne({
+					name: request.body.name,
+				})
+
+				if (genreExists) {
+					return response.status(400).json({
+						status: "error",
+						message: "Genre already exists",
+					})
+				}
+
 				let genre = new Genre({
 					name: request.body.name,
 				})
