@@ -372,3 +372,65 @@ describe("Albums", () => {
 		expect(response.body.response.length).toBe(2)
 	})
 })
+
+describe("All", () => {
+	test("GET /all/albums - Missing authorization", async () => {
+		const response = await request.get("/all/albums").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /all/albums - Correct", async () => {
+		const response = await request
+			.get("/all/albums")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /all/artists - Missing authorization", async () => {
+		const response = await request.get("/all/artists").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /all/artists - Correct", async () => {
+		const response = await request
+			.get("/all/artists")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /all/genres - Missing authorization", async () => {
+		const response = await request.get("/all/genres").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /all/genres - Correct", async () => {
+		const response = await request
+			.get("/all/genres")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /all/tracks - Missing authorization", async () => {
+		const response = await request.get("/all/tracks").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /all/tracks - Correct", async () => {
+		const response = await request
+			.get("/all/tracks")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(2)
+	})
+})
