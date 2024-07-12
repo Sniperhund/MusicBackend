@@ -28,6 +28,12 @@ beforeAll(async () => {
 let artistId, genreId, albumId
 
 describe("Admin", () => {
+	test("POST /admin/artist - Missing authorization", async () => {
+		const response = await request.post("/admin/artist").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
 	test("POST /admin/artist - Missing name", async () => {
 		const response = await request
 			.post("/admin/artist")
@@ -61,6 +67,12 @@ describe("Admin", () => {
 		artistId = response.body.response._id
 	})
 
+	test("POST /admin/genre - Missing authorization", async () => {
+		const response = await request.post("/admin/genre").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
 	test("POST /admin/genre - Missing name", async () => {
 		const response = await request
 			.post("/admin/genre")
@@ -80,6 +92,22 @@ describe("Admin", () => {
 		expect(response.body.response).toHaveProperty("_id")
 
 		genreId = response.body.response._id
+	})
+
+	test("POST /admin/genre - Duplicate", async () => {
+		const response = await request
+			.post("/admin/genre")
+			.set("Authorization", accessToken)
+			.field("name", "Test")
+			.expect(400)
+
+		expect(response.body.message).toBe("Genre already exists")
+	})
+
+	test("POST /admin/album - Missing authorization", async () => {
+		const response = await request.post("/admin/album").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
 	})
 
 	test("POST /admin/album - Missing name", async () => {
@@ -145,6 +173,12 @@ describe("Admin", () => {
 		albumId = response.body.response._id
 	})
 
+	test("POST /admin/track - Missing authorization", async () => {
+		const response = await request.post("/admin/track").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
 	test("POST /admin/track - Missing name", async () => {
 		const response = await request
 			.post("/admin/track")
@@ -208,6 +242,12 @@ describe("Admin", () => {
 })
 
 describe("Albums", () => {
+	test("GET /albums - Missing authorization", async () => {
+		const response = await request.get("/albums").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
 	test("GET /albums - Missing ids", async () => {
 		const response = await request
 			.get("/albums")
@@ -225,5 +265,110 @@ describe("Albums", () => {
 			.expect(200)
 
 		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /albums/:id - Missing authorization", async () => {
+		const response = await request.get("/albums/" + albumId).expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /albums/:id - Missing id", async () => {
+		const response = await request
+			.get("/albums/1")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /albums/:id - Correct", async () => {
+		const response = await request
+			.get("/albums/" + albumId)
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response._id).toBe(albumId)
+	})
+
+	test("GET /albums/:id/random - Missing authorization", async () => {
+		const response = await request
+			.get("/albums/" + genreId + "/random")
+			.expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /albums/:id/random - Missing id", async () => {
+		const response = await request
+			.get("/albums/1/random")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /albums/:id/random - Wrong limit type", async () => {
+		const response = await request
+			.get("/albums/" + genreId + "/random?limit=Test")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid limit")
+	})
+
+	test("GET /albums/:id/random - Correct", async () => {
+		const response = await request
+			.get("/albums/" + genreId + "/random")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /albums/:id/tracks - Missing authorization", async () => {
+		const response = await request
+			.get("/albums/" + albumId + "/tracks")
+			.expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /albums/:id/tracks - Missing id", async () => {
+		const response = await request
+			.get("/albums/1/tracks")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /albums/:id/tracks - Correct limited to 1", async () => {
+		const track = await request
+			.post("/admin/track")
+			.set("Authorization", accessToken)
+			.field("name", "Test")
+			.field("album", albumId)
+			.field("artist", artistId)
+			.attach("file", "test_data/audio.mp3")
+			.expect(201)
+
+		expect(track.body.response).toHaveProperty("_id")
+
+		const response = await request
+			.get("/albums/" + albumId + "/tracks?limit=1")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /albums/:id/tracks - Correct not limited", async () => {
+		const response = await request
+			.get("/albums/" + albumId + "/tracks")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(2)
 	})
 })
