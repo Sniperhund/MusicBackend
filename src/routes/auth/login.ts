@@ -1,46 +1,37 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import { User } from "../../schemas"
+import { upload } from "../../middleware/upload"
 
 export default (express: Application) =>
 	<Resource>{
+		middleware: [upload.none()],
 		post: async (request: Request, response: Response) => {
-			try {
-				let user = await User.findOne({
-					email: request.body.email.toLowerCase(),
+			let user = await User.findOne({
+				email: request.body.email.toLowerCase(),
+			})
+
+			if (!user || user.password !== request.body.password) {
+				return response.status(400).json({
+					status: "error",
+					message:
+						"Sorry, we couldn't find an account with that email or password",
 				})
+			}
 
-				if (!user)
-					return response.status(400).json({
-						status: "error",
-						message: "User not found",
-					})
+			if (!user.accessToken) {
+				return response.status(400).json({
+					status: "error",
+					message: "Sorry, you need to verify your email first",
+				})
+			}
 
-				if (user.password !== request.body.password)
-					return response.status(400).json({
-						status: "error",
-						message: "Invalid password",
-					})
-
-				if (!user.accessToken)
-					return response.status(400).json({
-						status: "error",
-						message: "You have to verify before you can login",
-					})
-
-				response.status(200).json({
-					status: "ok",
+			response.status(200).json({
+				status: "ok",
+				response: {
 					refreshToken: user.refreshToken,
 					accessToken: user.accessToken,
-				})
-			} catch (error) {
-				if (typeof error === "object" && error && "message" in error) {
-					return response.status(500).json({ message: error.message })
-				} else {
-					return response
-						.status(500)
-						.json({ message: "An unknown error occurred" })
-				}
-			}
+				},
+			})
 		},
 	}
