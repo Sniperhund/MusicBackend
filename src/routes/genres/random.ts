@@ -1,22 +1,23 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import { Genre } from "../../schemas"
-import authenticate from "../../middleware/auth"
+import auth from "../../middleware/auth"
 import mongoose from "mongoose"
+import { upload } from "../../middleware/upload"
 
 export default (express: Application) =>
 	<Resource>{
-		middleware: [authenticate],
+		middleware: [upload.none(), auth],
 		get: async (request: Request, response: Response) => {
 			const limit = request.query.limit
 				? parseInt(request.query.limit as string)
 				: 10
 
-			// Validate the limit
-			if (isNaN(limit) || limit <= 0) {
-				return response
-					.status(422)
-					.json({ error: "Invalid limit value" })
+			if (isNaN(limit) || limit < 0) {
+				return response.status(400).json({
+					status: "error",
+					message: "Invalid limit",
+				})
 			}
 
 			// Aggregate and get random genres
@@ -25,9 +26,15 @@ export default (express: Application) =>
 			])
 
 			if (randomGenres.length === 0) {
-				return response.status(404).json({ error: "No genres found" })
+				return response.status(404).json({
+					status: "error",
+					message: "No genres found",
+				})
 			}
 
-			return response.status(200).json(randomGenres)
+			return response.status(200).json({
+				status: "ok",
+				response: randomGenres,
+			})
 		},
 	}
