@@ -16,13 +16,19 @@ beforeAll(async () => {
 
 	await axios.get(url + "/admin/clear")
 
-	const result = await axios.post(url + "/auth/register", {
-		name: "Test",
-		email: "Test",
-		password: "Test",
-	})
+	let result
 
-	accessToken = result.data.user.accessToken
+	try {
+		result = await axios.post(url + "/auth/register", {
+			name: "Test",
+			email: "Test@example.com",
+			password: "Test1234@",
+		})
+	} catch (error) {
+		console.log(error.response.data)
+	}
+
+	accessToken = result.data.response.user.accessToken
 })
 
 let artistId, genreId, albumId
