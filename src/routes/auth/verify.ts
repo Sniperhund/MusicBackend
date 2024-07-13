@@ -2,52 +2,63 @@ import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import { User } from "../../schemas"
 import { v4 as uuidv4 } from "uuid"
+import validator from "validator"
+import { upload } from "../../middleware/upload"
 
 export default (express: Application) =>
 	<Resource>{
+		middleware: [upload.none()],
 		get: async (request: Request, response: Response) => {
-			try {
-				let user = await User.findOne({
-					verifyToken: request.query.q,
+			if (!request.query.q) {
+				return response.status(400).json({
+					status: "error",
+					message: "Token is required",
 				})
+			}
 
-				if (!user)
-					return response.status(400).json({
-						status: "error",
-						message: "User not found",
-					})
+			if (!validator.isUUID(request.query.q as string)) {
+				return response.status(400).json({
+					status: "error",
+					message: "Invalid token",
+				})
+			}
 
-				if (user.verified)
-					return response.status(400).json({
-						status: "error",
-						message: "User already verified",
-					})
+			let user = await User.findOne({
+				verifyToken: request.query.q,
+			})
 
-				user.verified = true
-				user.verifyToken = ""
+			if (!user) {
+				return response.status(400).json({
+					status: "error",
+					message: "User not found",
+				})
+			}
 
-				user.accessToken = uuidv4()
-				user.accessTokenExpire = new Date(
-					Date.now() + 60 * 60 * 24 * 7 * 1000
-				)
-				user.refreshToken = uuidv4()
+			if (user.verified) {
+				return response.status(400).json({
+					status: "error",
+					message: "User already verified",
+				})
+			}
 
-				await user.save()
+			user.verified = true
+			user.verifyToken = ""
 
-				response.status(200).json({
-					status: "ok",
+			user.accessToken = uuidv4()
+			user.accessTokenExpire = new Date(
+				Date.now() + 60 * 60 * 24 * 7 * 1000
+			)
+			user.refreshToken = uuidv4()
+
+			await user.save()
+
+			response.status(200).json({
+				status: "ok",
+				response: {
 					accessToken: user.accessToken,
 					refreshToken: user.refreshToken,
 					accessTokenExpire: user.accessTokenExpire,
-				})
-			} catch (error) {
-				if (typeof error === "object" && error && "message" in error) {
-					return response.status(500).json({ message: error.message })
-				} else {
-					return response
-						.status(500)
-						.json({ message: "An unknown error occurred" })
-				}
-			}
+				},
+			})
 		},
 	}
