@@ -2,37 +2,49 @@ import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import { Artist } from "../../schemas"
 import auth from "../../middleware/auth"
+import mongoose from "mongoose"
 
 export default (express: Application) =>
 	<Resource>{
 		middleware: [auth],
 		get: async (request: Request, response: Response) => {
-			try {
-				let errorHappened = false
-
-				if (!request.body.ids) {
-					response.status(422).json({ message: "ids is required" })
-					errorHappened = true
-				}
-
-				const artists = await Artist.find({
-					_id: { $in: request.body.ids },
-				}).catch((error) => {
-					response.status(500).json({ message: error.message })
-					errorHappened = true
+			if (!request.body.ids) {
+				return response.status(400).json({
+					status: "error",
+					message: "Ids are required",
 				})
+			}
 
-				if (errorHappened) return
+			if (request.body.ids && !Array.isArray(request.body.ids)) {
+				return response.status(400).json({
+					status: "error",
+					message: "Ids must be an array",
+				})
+			}
 
-				response.status(200).json(artists)
-			} catch (error) {
-				if (typeof error === "object" && error && "message" in error) {
-					return response.status(500).json({ message: error.message })
-				} else {
-					return response
-						.status(500)
-						.json({ message: "An unknown error occurred" })
+			for (let id of request.body.ids) {
+				if (!mongoose.Types.ObjectId.isValid(id)) {
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid id",
+					})
 				}
 			}
+
+			const artists = await Artist.find({
+				_id: { $in: request.body.ids },
+			})
+
+			if (artists.length == 0) {
+				return response.status(404).json({
+					status: "error",
+					message: "No artists found",
+				})
+			}
+
+			response.status(200).json({
+				status: "ok",
+				response: artists,
+			})
 		},
 	}
