@@ -1,31 +1,53 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import { Track } from "../../schemas"
+import mongoose from "mongoose"
+import { upload } from "../../middleware/upload"
+import auth from "../../middleware/auth"
 
 export default (express: Application) =>
 	<Resource>{
+		middleware: [upload.none(), auth],
 		get: async (request: Request, response: Response) => {
-			try {
-				if (!request.body.ids) {
-					return response
-						.status(422)
-						.json({ message: "ids is required" })
-				}
-
-				const tracks = await Track.find({
-					_id: { $in: request.body.ids },
+			if (!request.body.ids) {
+				return response.status(400).json({
+					status: "error",
+					message: "Ids are required",
 				})
-					.populate("album")
-					.populate("artist")
-				response.status(200).json(tracks)
-			} catch (error) {
-				if (typeof error === "object" && error && "message" in error) {
-					return response.status(500).json({ message: error.message })
-				} else {
-					return response
-						.status(500)
-						.json({ message: "An unknown error occurred" })
+			}
+
+			if (request.body.ids && !Array.isArray(request.body.ids)) {
+				return response.status(400).json({
+					status: "error",
+					message: "Ids must be an array",
+				})
+			}
+
+			for (let id of request.body.ids) {
+				if (!mongoose.Types.ObjectId.isValid(id)) {
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid id",
+					})
 				}
 			}
+
+			const tracks = await Track.find({
+				_id: { $in: request.body.ids },
+			})
+				.populate("album")
+				.populate("artist")
+
+			if (tracks.length === 0) {
+				return response.status(404).json({
+					status: "error",
+					message: "No tracks found",
+				})
+			}
+
+			response.status(200).json({
+				status: "ok",
+				response: tracks,
+			})
 		},
 	}
