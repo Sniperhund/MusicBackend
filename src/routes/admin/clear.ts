@@ -19,11 +19,13 @@ export default (express: Application) =>
 					])
 
 					return response.status(200).json({
+						status: "ok",
 						message: "All data has been deleted.",
 					})
 				}
 
 				return response.status(500).json({
+					status: "error",
 					message: "This can only be used in test mode :(",
 				})
 			},
