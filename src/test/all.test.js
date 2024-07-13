@@ -31,7 +31,7 @@ beforeAll(async () => {
 	accessToken = result.data.response.user.accessToken
 })
 
-let artistId, genreId, albumId
+let artistId, genreId, albumId, trackId
 
 describe("Admin", () => {
 	test("POST /admin/artist - Missing authorization", async () => {
@@ -244,6 +244,8 @@ describe("Admin", () => {
 			.expect(201)
 
 		expect(response.body.response).toHaveProperty("_id")
+
+		trackId = response.body.response._id
 	})
 })
 
@@ -489,5 +491,126 @@ describe("Artists", () => {
 			.expect(200)
 
 		expect(response.body.response._id).toBe(artistId)
+	})
+})
+
+describe("Genres", () => {
+	test("GET /genres/random - Missing authorization", async () => {
+		const response = await request.get("/genres/random").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /genres/random - Wrong limit type", async () => {
+		const response = await request
+			.get("/genres/random?limit=Test")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid limit")
+	})
+
+	test("GET /genres/random - Correct", async () => {
+		const response = await request
+			.get("/genres/random")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+})
+
+describe("Tracks", () => {
+	test("GET /tracks - Missing authorization", async () => {
+		const response = await request.get("/tracks").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /tracks - Missing ids", async () => {
+		const response = await request
+			.get("/tracks")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Ids are required")
+	})
+
+	test("GET /tracks - Correct", async () => {
+		const response = await request
+			.get("/tracks")
+			.set("Authorization", accessToken)
+			.field("ids", [trackId, trackId])
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /tracks/:id - Missing authorization", async () => {
+		const response = await request.get("/tracks/" + trackId).expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /tracks/:id - Missing id", async () => {
+		const response = await request
+			.get("/tracks/1")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /tracks/:id - Correct", async () => {
+		const response = await request
+			.get("/tracks/" + trackId)
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response._id).toBe(trackId)
+	})
+
+	test("GET /tracks/:id/random - Missing authorization", async () => {
+		const response = await request
+			.get("/tracks/" + genreId + "/random")
+			.expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /tracks/:id/random - Missing id", async () => {
+		const response = await request
+			.get("/tracks/1/random")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /tracks/:id/random - Wrong limit type", async () => {
+		const response = await request
+			.get("/tracks/" + genreId + "/random?limit=Test")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid limit")
+	})
+
+	test("GET /tracks/:id/random - Correct limited to 1", async () => {
+		const response = await request
+			.get("/tracks/" + genreId + "/random?limit=1")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /tracks/:id/random - Correct not limited", async () => {
+		const response = await request
+			.get("/tracks/" + genreId + "/random")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(2)
 	})
 })
