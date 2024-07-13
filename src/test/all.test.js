@@ -434,3 +434,54 @@ describe("All", () => {
 		expect(response.body.response.length).toBe(2)
 	})
 })
+
+describe("Artists", () => {
+	test("GET /artists - Missing authorization", async () => {
+		const response = await request.get("/artists").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /artists - Missing ids", async () => {
+		const response = await request
+			.get("/artists")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Ids are required")
+	})
+
+	test("GET /artists - Correct", async () => {
+		const response = await request
+			.get("/artists")
+			.set("Authorization", accessToken)
+			.field("ids", [artistId, artistId])
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /artists/:id - Missing authorization", async () => {
+		const response = await request.get("/artists/" + artistId).expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /artists/:id - Missing id", async () => {
+		const response = await request
+			.get("/artists/1")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /artists/:id - Correct", async () => {
+		const response = await request
+			.get("/artists/" + artistId)
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response._id).toBe(artistId)
+	})
+})
