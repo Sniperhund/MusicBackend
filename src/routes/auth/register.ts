@@ -46,7 +46,7 @@ export default (express: Application) =>
 					name: request.body.name,
 					email: request.body.email.toLowerCase(),
 					password: request.body.password,
-					verified: true,
+					verifyToken: uuidv4(),
 					accessToken: uuidv4(),
 					accessTokenExpire: new Date(
 						Date.now() + 60 * 60 * 24 * 7 * 1000
