@@ -7,6 +7,20 @@ export default (express: Application) =>
 	<Resource>{
 		middleware: [upload.none()],
 		post: async (request: Request, response: Response) => {
+			if (!request.body.email) {
+				return response.status(400).json({
+					status: "error",
+					message: "Email is required",
+				})
+			}
+
+			if (!request.body.password) {
+				return response.status(400).json({
+					status: "error",
+					message: "Password is required",
+				})
+			}
+
 			let user = await User.findOne({
 				email: request.body.email.toLowerCase(),
 			})
@@ -19,7 +33,7 @@ export default (express: Application) =>
 				})
 			}
 
-			if (!user.accessToken) {
+			if (!user.verified) {
 				return response.status(400).json({
 					status: "error",
 					message: "Sorry, you need to verify your email first",
