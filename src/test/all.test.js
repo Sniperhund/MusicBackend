@@ -5,7 +5,7 @@ const url = "http://localhost:8000"
 
 request = request(url)
 
-let accessToken
+let accessToken, verifyToken
 
 beforeAll(async () => {
 	try {
@@ -29,6 +29,7 @@ beforeAll(async () => {
 	}
 
 	accessToken = result.data.response.user.accessToken
+	verifyToken = result.data.response.user.verifyToken
 })
 
 let artistId, genreId, albumId, trackId
@@ -494,6 +495,109 @@ describe("Artists", () => {
 	})
 })
 
+describe("Auth", () => {
+	test("POST /auth/login - Not verified", async () => {
+		const response = await request
+			.post("/auth/login")
+			.field("email", "Test@example.com")
+			.field("password", "Test1234@")
+			.expect(400)
+
+		expect(response.body.message).toBe(
+			"Sorry, you need to verify your email first"
+		)
+	})
+
+	test("POST /auth/verify - Missing token", async () => {
+		const response = await request.get("/auth/verify").expect(400)
+
+		expect(response.body.message).toBe("Token is required")
+	})
+
+	test("POST /auth/verify - Invalid token", async () => {
+		const response = await request.get("/auth/verify?q=Test").expect(400)
+
+		expect(response.body.message).toBe("Invalid token")
+	})
+
+	test("POST /auth/verify - Correct", async () => {
+		const response = await request
+			.get("/auth/verify?q=" + verifyToken)
+			.expect(200)
+
+		expect(response.body.response.accessToken).toBeTruthy()
+
+		accessToken = response.body.response.accessToken
+	})
+
+	test("POST /auth/verify - Already verified", async () => {
+		const response = await request
+			.get("/auth/verify?q=" + verifyToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("User already verified")
+	})
+
+	test("POST /auth/login - Missing email", async () => {
+		const response = await request
+			.post("/auth/login")
+			.field("password", "Test1234@")
+			.expect(400)
+
+		expect(response.body.message).toBe("Email is required")
+	})
+
+	test("POST /auth/login - Missing password", async () => {
+		const response = await request
+			.post("/auth/login")
+			.field("email", "Test@example.com")
+			.expect(400)
+
+		expect(response.body.message).toBe("Password is required")
+	})
+
+	let refreshToken
+
+	test("POST /auth/login - Correct", async () => {
+		const response = await request
+			.post("/auth/login")
+			.field("email", "Test@example.com")
+			.field("password", "Test1234@")
+			.expect(200)
+
+		expect(response.body.response.accessToken).toBeTruthy()
+
+		accessToken = response.body.response.accessToken
+		refreshToken = response.body.response.refreshToken
+	})
+
+	test("POST /auth/refresh - Missing token", async () => {
+		const response = await request.post("/auth/refresh").expect(400)
+
+		expect(response.body.message).toBe("Invalid refresh token")
+	})
+
+	test("POST /auth/refresh - Invalid token", async () => {
+		const response = await request
+			.post("/auth/refresh")
+			.field("token", "Test")
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid refresh token")
+	})
+
+	test("POST /auth/refresh - Correct", async () => {
+		const response = await request
+			.post("/auth/refresh")
+			.field("refreshToken", refreshToken)
+			.expect(200)
+
+		expect(response.body.response.accessToken).toBeTruthy()
+
+		accessToken = response.body.response.accessToken
+	})
+})
+
 describe("Genres", () => {
 	test("GET /genres/random - Missing authorization", async () => {
 		const response = await request.get("/genres/random").expect(401)
@@ -612,5 +716,256 @@ describe("Tracks", () => {
 			.expect(200)
 
 		expect(response.body.response.length).toBe(2)
+	})
+})
+
+describe("User", () => {
+	test("POST /user/password - Missing authorization", async () => {
+		const response = await request.post("/user/password").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("POST /user/password - Missing old password", async () => {
+		const response = await request
+			.post("/user/password")
+			.set("Authorization", accessToken)
+			.field("newPassword", "Test4321@")
+			.expect(400)
+
+		expect(response.body.message).toBe("Old password is required")
+	})
+
+	test("POST /user/password - Missing new password", async () => {
+		const response = await request
+			.post("/user/password")
+			.set("Authorization", accessToken)
+			.field("oldPassword", "Test1234@")
+			.expect(400)
+
+		expect(response.body.message).toBe("New password is required")
+	})
+
+	test("POST /user/password - Wrong old password", async () => {
+		const response = await request
+			.post("/user/password")
+			.set("Authorization", accessToken)
+			.field("oldPassword", "Test4321@")
+			.field("newPassword", "Test1234@")
+			.expect(400)
+
+		expect(response.body.message).toBe("Password is incorrect")
+	})
+
+	test("POST /user/password - Weak new password", async () => {
+		const response = await request
+			.post("/user/password")
+			.set("Authorization", accessToken)
+			.field("oldPassword", "Test1234@")
+			.field("newPassword", "test")
+			.expect(400)
+
+		expect(response.body.message).toBe("New password is too weak")
+	})
+
+	test("POST /user/password - Same new password", async () => {
+		const response = await request
+			.post("/user/password")
+			.set("Authorization", accessToken)
+			.field("oldPassword", "Test1234@")
+			.field("newPassword", "Test1234@")
+			.expect(400)
+
+		expect(response.body.message).toBe(
+			"New password must be different from old password"
+		)
+	})
+
+	test("POST /user/password - Correct", async () => {
+		const response = await request
+			.post("/user/password")
+			.set("Authorization", accessToken)
+			.field("oldPassword", "Test1234@")
+			.field("newPassword", "Test4321@")
+			.expect(200)
+
+		expect(response.body.response.refreshToken).toBeTruthy()
+
+		const newLogin = await request
+			.post("/auth/login")
+			.field("email", "Test@example.com")
+			.field("password", "Test4321@")
+			.expect(200)
+
+		expect(newLogin.body.response.accessToken).toBeTruthy()
+
+		accessToken = newLogin.body.response.accessToken
+	})
+
+	test("GET /user - Missing authorization", async () => {
+		const response = await request.get("/user").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /user - Correct", async () => {
+		const response = await request
+			.get("/user")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response._id).toBeTruthy()
+	})
+
+	test("PUT /user/tracks - Missing authorization", async () => {
+		const response = await request.put("/user/tracks").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("PUT /user/tracks - Missing ids", async () => {
+		const response = await request
+			.put("/user/tracks")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Id(s) are required")
+	})
+
+	test("PUT /user/tracks - Correct", async () => {
+		const response = await request
+			.put("/user/tracks")
+			.set("Authorization", accessToken)
+			.field("id", trackId)
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+	})
+
+	test("PUT /user/tracks - Duplicate id", async () => {
+		const response = await request
+			.put("/user/tracks")
+			.set("Authorization", accessToken)
+			.field("id", trackId)
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+
+		const user = await request
+			.get("/user/tracks")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(user.body.response.length).toBe(1)
+	})
+
+	test("GET /user/tracks - Missing authorization", async () => {
+		const response = await request.get("/user/tracks").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /user/tracks - Correct", async () => {
+		const response = await request
+			.get("/user/tracks")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /user/albums - Missing authorization", async () => {
+		const response = await request.get("/user/albums").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /user/albums - Correct", async () => {
+		const response = await request
+			.get("/user/albums")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /user/tracks/contains - Missing authorization", async () => {
+		const response = await request.get("/user/tracks/contains").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /user/tracks/contains - Missing id", async () => {
+		const response = await request
+			.get("/user/tracks/contains")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /user/tracks/contains", async () => {
+		const response = await request
+			.get("/user/tracks/contains?id=" + trackId)
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response).toBe(true)
+	})
+
+	test("GET /user/albums/contains - Missing authorization", async () => {
+		const response = await request.get("/user/albums/contains").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /user/albums/contains - Missing id", async () => {
+		const response = await request
+			.get("/user/albums/contains")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /user/albums/contains - Correct", async () => {
+		const response = await request
+			.get("/user/albums/contains?id=" + albumId)
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response).toBe(true)
+	})
+
+	test("DELETE /user/tracks - Missing authorization", async () => {
+		const response = await request.delete("/user/tracks").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("DELETE /user/tracks - Missing ids", async () => {
+		const response = await request
+			.delete("/user/tracks")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Id(s) are required")
+	})
+
+	test("DELETE /user/tracks - Correct", async () => {
+		const response = await request
+			.delete("/user/tracks")
+			.set("Authorization", accessToken)
+			.field("id", trackId)
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+
+		const user = await request
+			.get("/user/tracks")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(user.body.response.length).toBe(0)
 	})
 })
