@@ -1,21 +1,35 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
-import authenticate from "../../middleware/auth"
+import auth from "../../middleware/auth"
 import { User } from "../../schemas"
-import { Schema } from "mongoose"
+import { upload } from "../../middleware/upload"
+import mongoose from "mongoose"
 
 export default (express: Application) =>
 	<Resource>{
-		middleware: [authenticate],
+		middleware: [upload.none(), auth],
 		get: async (request: Request, response: Response) => {
 			const limit: number = request.query.limit
 				? parseInt(request.query.limit as string)
 				: 10
 
-			//! The offset may not working (I'm not sure since I only have one song in the database and lazy)
+			if (isNaN(limit) || limit < 0) {
+				return response.status(400).json({
+					status: "error",
+					message: "Invalid limit",
+				})
+			}
+
 			const offset = request.query.offset
 				? parseInt(request.query.offset as string)
 				: 0
+
+			if (isNaN(offset) || offset < 0) {
+				return response.status(400).json({
+					status: "error",
+					message: "Invalid offset",
+				})
+			}
 
 			const savedTracks = await User.findById(request.body.user._id)
 				.select("savedTracks")
@@ -27,29 +41,54 @@ export default (express: Application) =>
 					},
 				})
 
-			if (!savedTracks)
+			if (!savedTracks) {
 				return response.status(400).json({
 					status: "error",
 					message: "No saved tracks found",
 				})
+			}
 
 			response.status(200).json({
 				status: "ok",
-				savedTracks: savedTracks.savedTracks,
+				response: savedTracks.savedTracks,
 			})
 		},
 		put: async (request: Request, response: Response) => {
 			const songIds = request.body.ids
 
+			if (!songIds) {
+				return response.status(400).json({
+					status: "error",
+					message: "Ids are required",
+				})
+			}
+
+			if (!Array.isArray(songIds)) {
+				return response.status(400).json({
+					status: "error",
+					message: "Ids must be an array",
+				})
+			}
+
+			for (let id of songIds) {
+				if (!mongoose.Types.ObjectId.isValid(id)) {
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid id",
+					})
+				}
+			}
+
 			const user = await User.findById(request.body.user._id)
 				.select("savedTracks")
 				.populate("savedTracks")
 
-			if (!user)
+			if (!user) {
 				return response.status(400).json({
 					status: "error",
 					message: "The user was not found",
 				})
+			}
 
 			songIds.forEach(async (id: string) => {
 				if (!user.savedTracks.includes(id as any)) {
@@ -65,6 +104,29 @@ export default (express: Application) =>
 		},
 		delete: async (request: Request, response: Response) => {
 			const songIds = request.body.ids
+
+			if (!songIds) {
+				return response.status(400).json({
+					status: "error",
+					message: "Ids are required",
+				})
+			}
+
+			if (!Array.isArray(songIds)) {
+				return response.status(400).json({
+					status: "error",
+					message: "Ids must be an array",
+				})
+			}
+
+			for (let id of songIds) {
+				if (!mongoose.Types.ObjectId.isValid(id)) {
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid id",
+					})
+				}
+			}
 
 			const user = await User.findById(request.body.user._id)
 				.select("savedTracks")
