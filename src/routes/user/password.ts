@@ -71,7 +71,7 @@ export default (express: Application) =>
 			}
 
 			user.password = request.body.newPassword
-			user.accessToken = ""
+			user.accessToken = uuidv4()
 			user.refreshToken = uuidv4()
 
 			await user.save()
@@ -80,6 +80,7 @@ export default (express: Application) =>
 				status: "ok",
 				response: {
 					refreshToken: user.refreshToken,
+					accessToken: user.accessToken,
 				},
 			})
 		},
