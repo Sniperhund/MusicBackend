@@ -1,12 +1,12 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
-import authenticate from "../../middleware/auth"
+import auth from "../../middleware/auth"
 import { User } from "../../schemas"
 import { Schema } from "mongoose"
 
 export default (express: Application) =>
 	<Resource>{
-		middleware: [authenticate],
+		middleware: [auth],
 		get: async (request: Request, response: Response) => {
 			const user = await User.findById(request.body.user._id)
 				.select(
@@ -20,6 +20,9 @@ export default (express: Application) =>
 					message: "User not found",
 				})
 
-			response.status(200).json(user)
+			response.status(200).json({
+				status: "ok",
+				response: user,
+			})
 		},
 	}
