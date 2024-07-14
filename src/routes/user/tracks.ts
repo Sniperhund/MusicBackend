@@ -3,7 +3,7 @@ import { Resource } from "express-automatic-routes"
 import auth from "../../middleware/auth"
 import { User } from "../../schemas"
 import { upload } from "../../middleware/upload"
-import mongoose from "mongoose"
+import mongoose, { ObjectId } from "mongoose"
 
 export default (express: Application) =>
 	<Resource>{
@@ -54,29 +54,41 @@ export default (express: Application) =>
 			})
 		},
 		put: async (request: Request, response: Response) => {
-			const songIds = request.body.ids
+			let songIds = request.body.ids
+			const songId = request.body.id
 
-			if (!songIds) {
+			if (!(songIds || songId)) {
 				return response.status(400).json({
 					status: "error",
-					message: "Ids are required",
+					message: "Id(s) are required",
 				})
 			}
 
-			if (!Array.isArray(songIds)) {
-				return response.status(400).json({
-					status: "error",
-					message: "Ids must be an array",
-				})
-			}
+			if (songIds) {
+				if (!Array.isArray(songIds)) {
+					return response.status(400).json({
+						status: "error",
+						message: "Ids must be an array",
+					})
+				}
 
-			for (let id of songIds) {
-				if (!mongoose.Types.ObjectId.isValid(id)) {
+				for (let id of songIds) {
+					if (!mongoose.Types.ObjectId.isValid(id)) {
+						return response.status(400).json({
+							status: "error",
+							message: "Invalid id",
+						})
+					}
+				}
+			} else {
+				if (!mongoose.Types.ObjectId.isValid(songId)) {
 					return response.status(400).json({
 						status: "error",
 						message: "Invalid id",
 					})
 				}
+
+				songIds = [songId]
 			}
 
 			const user = await User.findById(request.body.user._id)
@@ -90,11 +102,15 @@ export default (express: Application) =>
 				})
 			}
 
-			songIds.forEach(async (id: string) => {
-				if (!user.savedTracks.includes(id as any)) {
-					user.savedTracks.push(id as any)
+			for (let id of songIds) {
+				if (
+					!user.savedTracks.find(
+						(song: any) => song._id.toString() === id
+					)
+				) {
+					user.savedTracks.push(id)
 				}
-			})
+			}
 
 			await user.save()
 
@@ -103,29 +119,41 @@ export default (express: Application) =>
 			})
 		},
 		delete: async (request: Request, response: Response) => {
-			const songIds = request.body.ids
+			let songIds = request.body.ids
+			const songId = request.body.id
 
-			if (!songIds) {
+			if (!(songIds || songId)) {
 				return response.status(400).json({
 					status: "error",
-					message: "Ids are required",
+					message: "Id(s) are required",
 				})
 			}
 
-			if (!Array.isArray(songIds)) {
-				return response.status(400).json({
-					status: "error",
-					message: "Ids must be an array",
-				})
-			}
+			if (songIds) {
+				if (!Array.isArray(songIds)) {
+					return response.status(400).json({
+						status: "error",
+						message: "Ids must be an array",
+					})
+				}
 
-			for (let id of songIds) {
-				if (!mongoose.Types.ObjectId.isValid(id)) {
+				for (let id of songIds) {
+					if (!mongoose.Types.ObjectId.isValid(id)) {
+						return response.status(400).json({
+							status: "error",
+							message: "Invalid id",
+						})
+					}
+				}
+			} else {
+				if (!mongoose.Types.ObjectId.isValid(songId)) {
 					return response.status(400).json({
 						status: "error",
 						message: "Invalid id",
 					})
 				}
+
+				songIds = [songId]
 			}
 
 			const user = await User.findById(request.body.user._id)
