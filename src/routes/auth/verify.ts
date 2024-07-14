@@ -42,7 +42,6 @@ export default (express: Application) =>
 			}
 
 			user.verified = true
-			user.verifyToken = ""
 
 			user.accessToken = uuidv4()
 			user.accessTokenExpire = new Date(
