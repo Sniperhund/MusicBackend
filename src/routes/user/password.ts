@@ -4,6 +4,7 @@ import { User } from "../../schemas"
 import auth from "../../middleware/auth"
 import { upload } from "../../middleware/upload"
 import validator from "validator"
+import { v4 as uuidv4 } from "uuid"
 
 export default (express: Application) =>
 	<Resource>{
@@ -70,11 +71,16 @@ export default (express: Application) =>
 			}
 
 			user.password = request.body.newPassword
+			user.accessToken = ""
+			user.refreshToken = uuidv4()
 
 			await user.save()
 
 			return response.status(200).json({
 				status: "ok",
+				response: {
+					refreshToken: user.refreshToken,
+				},
 			})
 		},
 	}
