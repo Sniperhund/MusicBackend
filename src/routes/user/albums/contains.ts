@@ -28,7 +28,7 @@ export default (express: Application) =>
 			}
 
 			const albumIds: any[] = user.savedTracks.map((track: any) => {
-				return track.album
+				return track.album.toString()
 			})
 
 			const contains = albumIds.includes(request.query.id as any)
