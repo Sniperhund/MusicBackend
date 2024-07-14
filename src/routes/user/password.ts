@@ -38,7 +38,7 @@ export default (express: Application) =>
 			 * pointsForContainingNumber: 10
 			 * pointsForContainingSymbol: 10
 			 */
-			if (!validator.isStrongPassword(request.body.password)) {
+			if (!validator.isStrongPassword(request.body.newPassword)) {
 				return response.status(400).json({
 					status: "error",
 					message: "New password is too weak",
