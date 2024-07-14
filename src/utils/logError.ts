@@ -6,7 +6,7 @@ export default async function logError(message: string) {
 
 	log.error({
 		id: errorId,
-		message: message,
+		error: message,
 	})
 
 	return errorId

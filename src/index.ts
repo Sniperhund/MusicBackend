@@ -52,7 +52,7 @@ async function main() {
 
 	app.use((error: any, request: any, response: any, next: any) => {
 		if (error) {
-			const id = logError(error.message)
+			const id = logError(error)
 
 			if (request.file) {
 				const fileLocation = request.file?.path
