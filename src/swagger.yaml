@@ -6,6 +6,44 @@ info:
         My own little music backend for my music frontend 😎
 
         Please do not use the **Try it out** button
+
+        All responses follow this structure:
+
+        Responses:
+        - 200 - OK (Returned with data, if the endpoint returns with anything)
+        - 201 - Created entry in database
+        - 400 - Invalid request (field is missing or something like that) or duplicate something
+        - 401 - Unauthorized
+        - 403 - The user doesn’t have access
+        - 404 - Nothing found
+        - 406 - Access token missing
+
+        Success:
+        ```json
+        {
+            status: "ok",
+            response: {
+                // Response data
+            }
+        }
+        ```
+
+        400 errors:
+        ```json
+        {
+            status: "error",
+            message: "Error message"
+        }
+        ```
+
+        500 errors:
+        The error id is a unique id for the error. It is used to track down the error in the logs.
+        ```json
+        {
+            status: "error",
+            errorId: id,
+        }
+        ```
     license:
         name: Apache 2.0
         url: https://www.apache.org/licenses/LICENSE-2.0
@@ -20,6 +58,10 @@ paths:
     /admin/album:
         post:
             summary: Add an album
+            tags:
+                - admin
+            security:
+                - auth: []
             requestBody:
                 required: true
                 content:
@@ -47,8 +89,1019 @@ paths:
                         encoding:
                             cover:
                                 contentType: image/*
+            responses:
+                "201":
+                    description: Album created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Album"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
+    /admin/artist:
+        post:
+            summary: Add an artist
+            tags:
+                - admin
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                file:
+                                    type: file
+                                    format: binary
+                                    description: image/*
+                            required:
+                                - name
+                                - file
+                        encoding:
+                            file:
+                                contentType: image/*
+            responses:
+                "201":
+                    description: Artist created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Artist"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
+    /admin/clear:
+        get:
+            summary: Clear all data
+            description: |
+                This will clear all data in the database.
+                This does only work if test mode is enabled.
+            tags:
+                - admin
+            security:
+                - auth: []
+            responses:
+                "200":
+                    description: Data cleared
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
+    /admin/genre:
+        post:
+            summary: Add a genre
+            tags:
+                - admin
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                            required:
+                                - name
+            responses:
+                "201":
+                    description: Genre created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Genre"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
+    /admin/track:
+        post:
+            summary: Add a track
+            tags:
+                - admin
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                album:
+                                    type: string
+                                artists:
+                                    type: array
+                                    description: String ids
+                                file:
+                                    type: file
+                                    format: binary
+                                    description: audio/*
+                            required:
+                                - name
+                                - album
+                                - artists
+                                - file
+                        encoding:
+                            file:
+                                contentType: audio/*
+            responses:
+                "201":
+                    description: Track created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Track"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
+    /albums:
+        get:
+            summary: Get multiple albums by giving ids
+            tags:
+                - albums
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                ids:
+                                    type: array
+                                    items:
+                                        type: string
+                        example:
+                            ids:
+                                - id of album
+                                - different id of album
+            responses:
+                "200":
+                    description: Albums found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Album"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Albums not found
+                "500":
+                    description: Internal server error
+    /albums/{id}:
+        get:
+            summary: Get album by id
+            tags:
+                - albums
+            security:
+                - auth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Album found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Album"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Album not found
+                "500":
+                    description: Internal server error
+    /albums/{id}/random:
+        get:
+            summary: Get random albums from the same genre
+            tags:
+                - albums
+            security:
+                - auth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: query
+                  name: limit
+                  schema:
+                    type: integer
+                    default: 10
+            responses:
+                "200":
+                    description: Albums found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Album"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Albums not found
+                "500":
+                    description: Internal server error
+    /albums/{id}/tracks:
+        get:
+            summary: Get tracks from an album
+            tags:
+                - albums
+            security:
+                - auth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: query
+                  name: limit
+                  schema:
+                    type: integer
+                    default: 10
+                - in: query
+                  name: offset
+                  schema:
+                    type: integer
+                    default: 0
+            responses:
+                "200":
+                    description: Tracks found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Track"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Tracks not found
+                "500":
+                    description: Internal server error
+    /all/albums:
+        get:
+            summary: Get all albums
+            tags:
+                - all
+            security:
+                - auth: []
+            responses:
+                "200":
+                    description: Albums found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Album"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Albums not found
+                "500":
+                    description: Internal server error
+    /all/artists:
+        get:
+            summary: Get all artists
+            tags:
+                - all
+            security:
+                - auth: []
+            responses:
+                "200":
+                    description: Artists found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Artist"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Artists not found
+                "500":
+                    description: Internal server error
+    /all/genres:
+        get:
+            summary: Get all genres
+            tags:
+                - all
+            security:
+                - auth: []
+            responses:
+                "200":
+                    description: Genres found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Genre"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Genres not found
+                "500":
+                    description: Internal server error
+    /all/tracks:
+        get:
+            summary: Get all tracks
+            tags:
+                - all
+            security:
+                - auth: []
+            responses:
+                "200":
+                    description: Tracks found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Track"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Tracks not found
+                "500":
+                    description: Internal server error
+    /artists:
+        get:
+            summary: Get multiple artists by giving ids
+            tags:
+                - artists
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                ids:
+                                    type: array
+                                    items:
+                                        type: string
+                        example:
+                            ids:
+                                - id of artist
+                                - different id of artist
+            responses:
+                "200":
+                    description: Artists found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Artist"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Artists not found
+                "500":
+                    description: Internal server error
+    /artists/{id}:
+        get:
+            summary: Get artist by id
+            tags:
+                - artists
+            security:
+                - auth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Artist found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Artist"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Artist not found
+                "500":
+                    description: Internal server error
+    /auth/login:
+        post:
+            summary: Login a user
+            tags:
+                - auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                email:
+                                    type: string
+                                password:
+                                    type: string
+                            required:
+                                - email
+                                - password
+            responses:
+                "200":
+                    description: User logged in
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    accessToken:
+                                        type: string
+                                    refreshToken:
+                                        type: string
+                "400":
+                    description: Bad request
+                "500":
+                    description: Internal server error
+    /auth/refresh:
+        post:
+            summary: Refresh a user's token
+            tags:
+                - auth
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                refreshToken:
+                                    type: string
+                            required:
+                                - refreshToken
+            responses:
+                "200":
+                    description: Token refreshed
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    accessToken:
+                                        type: string
+                                    accessTokenExpire:
+                                        type: Date
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal server error
+    /auth/register:
+        post:
+            summary: Register a user
+            tags:
+                - auth
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                email:
+                                    type: string
+                                password:
+                                    type: string
+                                    description: | 
+                                        Must be at least 8 characters long
+
+                                        Must contain at least one uppercase letter
+
+                                        Must contain at least one lowercase letter
+
+                                        Must contain at least one number
+
+                                        Must contain at least one special character
+                                frontendUrl:
+                                    type: string
+                                    description: |
+                                        The url to the frontend's verify page
+
+                                        Sets the query parameter **q** to the verify token
+                            required:
+                                - name
+                                - email
+                                - password
+            responses:
+                "201":
+                    description: User registered
+                "400":
+                    description: Bad request
+                "500":
+                    description: Internal server error
+    /auth/verify:
+        get:
+            summary: Verify a user
+            tags:
+                - auth
+            parameters:
+                - in: query
+                  name: q
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: User verified
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    accessToken:
+                                        type: string
+                                    refreshToken:
+                                        type: string
+                                    accessTokenExpire:
+                                        type: Date
+                "400":
+                    description: Bad request
+                "404":
+                    description: User not found
+                "500":
+                    description: Internal server error
+    /genres/random:
+        get:
+            summary: Get random genres
+            tags:
+                - genres
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    type: integer
+                    default: 10
+            responses:
+                "200":
+                    description: Genres found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Genre"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Genres not found
+                "500":
+                    description: Internal server error
+    /tracks:
+        get:
+            summary: Get multiple tracks by giving ids
+            tags:
+                - tracks
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                ids:
+                                    type: array
+                                    items:
+                                        type: string
+                        example:
+                            ids:
+                                - id of track
+                                - different id of track
+            responses:
+                "200":
+                    description: Tracks found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Track"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Tracks not found
+                "500":
+                    description: Internal server error
+    /tracks/{id}:
+        get:
+            summary: Get track by id
+            tags:
+                - tracks
+            security:
+                - auth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Track found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Track"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Track not found
+                "500":
+                    description: Internal server error
+    /tracks/{id}/random:
+        get:
+            summary: Get random tracks from the same genre
+            tags:
+                - tracks
+            security:
+                - auth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: query
+                  name: limit
+                  schema:
+                    type: integer
+                    default: 10
+            responses:
+                "200":
+                    description: Tracks found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Track"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Tracks not found
+                "500":
+                    description: Internal server error
+    /user:
+        get:
+            summary: Get user
+            tags:
+                - user
+            security:
+                - auth: []
+            responses:
+                "200":
+                    description: User found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/User"
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: User not found
+                "500":
+                    description: Internal server error
+    /user/tracks:
+        get:
+            summary: Get saved tracks
+            tags:
+                - user
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    type: integer
+                    default: 10
+                - in: query
+                  name: offset
+                  schema:
+                    type: integer
+                    default: 0
+            responses:
+                "200":
+                    description: Tracks found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Track"
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Tracks not found
+                "500":
+                    description: Internal server error
+        put:
+            summary: Save a track
+            tags:
+                - user
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                ids:
+                                    type: array
+                                    items:
+                                        type: string
+                        examples:
+                            id:
+                                value: id of track
+                            ids:
+                                value:
+                                    - id of track
+                                    - different id of track
+            responses:
+                "200":
+                    description: Track saved
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Track not found
+                "500":
+                    description: Internal server error
+        delete:
+            summary: Unsave a track
+            tags:
+                - user
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                id:
+                                    type: string
+                                ids:
+                                    type: array
+                                    items:
+                                        type: string
+                        examples:
+                            id:
+                                value: id of track
+                            ids:
+                                value:
+                                    - id of track
+                                    - different id of track
+            responses:
+                "200":
+                    description: Track unsaved
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Track not found
+                "500":
+                    description: Internal server error
+    /user/tracks/contains:
+        get:
+            summary: Check if a track is saved
+            tags:
+                - user
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Track found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    contains:
+                                        type: boolean
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: User not found
+                "500":
+                    description: Internal server error
+    /user/albums:
+        get:
+            summary: Get saved albums
+            tags:
+                - user
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    type: integer
+                    default: 10
+            responses:
+                "200":
+                    description: Albums found
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Album"
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Albums not found
+                "500":
+                    description: Internal server error
+    /user/albums/contains:
+        get:
+            summary: Check if an album is saved
+            tags:
+                - user
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Album found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    contains:
+                                        type: boolean
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: User not found
+                "500":
+                    description: Internal server error
+    /user/password:
+        post:
+            summary: Change password
+            description: |
+                This also resets the refresh token and logs the user out on all devices
+            tags:
+                - user
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                oldPassword:
+                                    type: string
+                                newPassword:
+                                    type: string
+                                    description: | 
+                                        Must be at least 8 characters long
+
+                                        Must contain at least one uppercase letter
+
+                                        Must contain at least one lowercase letter
+
+                                        Must contain at least one number
+
+                                        Must contain at least one special character
+                            required:
+                                - oldPassword
+                                - newPassword
+            responses:
+                "200":
+                    description: Password changed
+                    schema:
+                        type: object
+                        properties:
+                            accessToken:
+                                type: string
+                            refreshToken:
+                                type: string
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "500":
+                    description: Internal server error
 
 components:
+    securitySchemes:
+        auth:
+            type: apiKey
+            in: header
+            name: Authorization
     schemas:
         User:
             type: object
@@ -85,8 +1138,7 @@ components:
                 savedTracks:
                     type: array
                     items:
-                        type: string
-                        description: ID of track
+                        $ref: "#/components/schemas/Track"
         Track:
             type: object
             properties:
@@ -95,14 +1147,11 @@ components:
                 name:
                     type: string
                 album:
-                    type: string
-                    description: ID of album
+                    $ref: "#/components/schemas/Album"
                 artists:
                     type: array
                     items:
-                        type: string
-                        description: ID of artist
-
+                        $ref: "#/components/schemas/Artist"
         Album:
             type: object
             properties:
@@ -113,16 +1162,13 @@ components:
                 artists:
                     type: array
                     items:
-                        type: string
-                        description: ID of artist
+                        $ref: "#/components/schemas/Artist"
                 cover:
                     type: string
                 genres:
                     type: array
                     items:
-                        type: string
-                        description: ID of genre
-        
+                        $ref: "#/components/schemas/Genre"
         Artist:
             type: object
             properties:
@@ -132,4 +1178,10 @@ components:
                     type: string
                 cover:
                     type: string
-                        
+        Genre:
+            type: object
+            properties:
+                _id:
+                    type: string
+                name:
+                    type: string
