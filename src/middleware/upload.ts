@@ -7,9 +7,7 @@ const uploadDir = process.env.UPLOAD_DIR || "public"
 
 const track = multer.diskStorage({
 	destination: function (req: any, file: any, cb: any) {
-		if (!fs.existsSync(uploadDir + "/track")) {
-			fs.mkdirSync(uploadDir + "/track")
-		}
+		fs.mkdirSync(uploadDir + "/track", { recursive: true })
 
 		cb(null, uploadDir + "/track")
 	},
@@ -27,9 +25,7 @@ export const trackUpload = multer({ storage: track })
 
 const albumCover = SharpMulter({
 	destination: function (req: any, file: any, cb: any) {
-		if (!fs.existsSync(uploadDir + "/albumCover")) {
-			fs.mkdirSync(uploadDir + "/albumCover")
-		}
+		fs.mkdirSync(uploadDir + "/albumCover", { recursive: true })
 
 		cb(null, uploadDir + "/albumCover")
 	},
@@ -49,9 +45,7 @@ export const albumCoverUpload = multer({ storage: albumCover })
 
 const artistCover = SharpMulter({
 	destination: function (req: any, file: any, cb: any) {
-		if (!fs.existsSync(uploadDir + "/artistCover")) {
-			fs.mkdirSync(uploadDir + "/artistCover")
-		}
+		fs.mkdirSync(uploadDir + "/artistCover", { recursive: true })
 
 		cb(null, uploadDir + "/artistCover")
 	},
