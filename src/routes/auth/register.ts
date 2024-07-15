@@ -39,6 +39,13 @@ export default (express: Application) =>
 				})
 			}
 
+			if (!request.body.name) {
+				return response.status(400).json({
+					status: "error",
+					message: "Name is required",
+				})
+			}
+
 			if (process.env.TEST) {
 				log.warn("Test mode is enabled")
 
