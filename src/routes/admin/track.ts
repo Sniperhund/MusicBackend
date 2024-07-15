@@ -55,12 +55,41 @@ export default (express: Application) =>
 					})
 				}
 
-				if (!mongoose.Types.ObjectId.isValid(request.body.artist)) {
-					cleanFile(fileLocation)
+				let artists = request.body.artists
+				const artist = request.body.artist
+
+				if (!(artists || artist)) {
 					return response.status(400).json({
 						status: "error",
-						message: "Invalid artist id",
+						message: "Artist(s) are required",
 					})
+				}
+
+				if (artists) {
+					if (!Array.isArray(artists)) {
+						return response.status(400).json({
+							status: "error",
+							message: "Artists must be an array",
+						})
+					}
+
+					for (let id of artists) {
+						if (!mongoose.Types.ObjectId.isValid(id)) {
+							return response.status(400).json({
+								status: "error",
+								message: "Invalid artist",
+							})
+						}
+					}
+				} else {
+					if (!mongoose.Types.ObjectId.isValid(artist)) {
+						return response.status(400).json({
+							status: "error",
+							message: "Invalid artist",
+						})
+					}
+
+					artists = [artist]
 				}
 
 				if (!request.file) {
@@ -78,7 +107,7 @@ export default (express: Application) =>
 				let track = new Track({
 					name: request.body.name,
 					album: request.body.album,
-					artist: request.body.artist,
+					artists: artists,
 					audioFile: request.file?.filename,
 					durationInSeconds: duration,
 				})

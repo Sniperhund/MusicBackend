@@ -41,7 +41,7 @@ export default (express: Application) =>
 				.limit(limit)
 				.skip(skip)
 				.populate("album")
-				.populate("artist")
+				.populate("artists")
 
 			if (tracks.length === 0) {
 				return response.status(404).json({

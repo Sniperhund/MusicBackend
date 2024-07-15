@@ -9,7 +9,7 @@ export default (express: Application) =>
 		middleware: [upload.none(), auth],
 		get: async (request: Request, response: Response) => {
 			const tracks = await Track.find({})
-				.populate("artist")
+				.populate("artists")
 				.populate("album")
 
 			if (!tracks) {

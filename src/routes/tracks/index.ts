@@ -36,7 +36,7 @@ export default (express: Application) =>
 				_id: { $in: request.body.ids },
 			})
 				.populate("album")
-				.populate("artist")
+				.populate("artists")
 
 			if (tracks.length === 0) {
 				return response.status(404).json({

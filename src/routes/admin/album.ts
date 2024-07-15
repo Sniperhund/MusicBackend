@@ -4,6 +4,7 @@ import { albumCoverUpload } from "../../middleware/upload"
 import { Album } from "../../schemas"
 import auth from "../../middleware/auth"
 import cleanFile from "../../utils/cleanFile"
+import mongoose from "mongoose"
 
 export default (express: Application) =>
 	<Resource>{
@@ -27,12 +28,41 @@ export default (express: Application) =>
 					})
 				}
 
-				if (!request.body.artist) {
-					cleanFile(fileLocation)
+				let artists = request.body.artists
+				const artist = request.body.artist
+
+				if (!(artists || artist)) {
 					return response.status(400).json({
 						status: "error",
-						message: "Artist is required",
+						message: "Artist(s) are required",
 					})
+				}
+
+				if (artists) {
+					if (!Array.isArray(artists)) {
+						return response.status(400).json({
+							status: "error",
+							message: "Artists must be an array",
+						})
+					}
+
+					for (let id of artists) {
+						if (!mongoose.Types.ObjectId.isValid(id)) {
+							return response.status(400).json({
+								status: "error",
+								message: "Invalid artist",
+							})
+						}
+					}
+				} else {
+					if (!mongoose.Types.ObjectId.isValid(artist)) {
+						return response.status(400).json({
+							status: "error",
+							message: "Invalid artist",
+						})
+					}
+
+					artists = [artist]
 				}
 
 				if (!request.file) {
@@ -53,7 +83,7 @@ export default (express: Application) =>
 
 				let album = new Album({
 					name: request.body.name,
-					artist: request.body.artist,
+					artists: artists,
 					cover: request.file?.filename,
 					genres: request.body.genres,
 				})

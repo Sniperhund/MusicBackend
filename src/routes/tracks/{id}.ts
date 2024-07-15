@@ -18,7 +18,7 @@ export default (express: Application) =>
 
 			const track = await Track.findById(request.params.id)
 				.populate("album")
-				.populate("artist")
+				.populate("artists")
 
 			if (!track) {
 				return response.status(404).json({

@@ -33,7 +33,7 @@ export default (express: Application) =>
 				{
 					$lookup: {
 						from: "artists",
-						localField: "artist",
+						localField: "artists",
 						foreignField: "_id",
 						as: "artistInfo",
 					},
@@ -45,7 +45,7 @@ export default (express: Application) =>
 						name: 1,
 						cover: 1,
 						genres: 1,
-						artist: {
+						artists: {
 							_id: "$artistInfo._id",
 							name: "$artistInfo.name",
 							cover: "$artistInfo.cover",

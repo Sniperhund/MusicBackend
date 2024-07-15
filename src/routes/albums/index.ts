@@ -35,7 +35,7 @@ export default (express: Application) =>
 
 			const albums = await Album.find({
 				_id: { $in: request.body.ids },
-			}).populate("artist")
+			}).populate("artists")
 
 			if (albums.length == 0) {
 				return response.status(404).json({

@@ -29,7 +29,7 @@ async function main() {
 	app.use(express.urlencoded({ extended: true }))
 	app.use(express.json())
 
-	const options = { explorer: true }
+	const options = { explorer: true, tryItOutEnabled: false }
 
 	const file = fs.readFileSync("./src/swagger.yaml", "utf8")
 	const swaggerDocument = YAML.parse(file)

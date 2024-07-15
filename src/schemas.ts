@@ -49,10 +49,12 @@ const track = new mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Album",
 	},
-	artist: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "Artist",
-	},
+	artists: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Artist",
+		},
+	],
 	audioFile: String,
 	durationInSeconds: Number,
 })
@@ -64,10 +66,12 @@ export const Track = mongoose.model("Track", track)
 // Album Schema
 const album = new mongoose.Schema({
 	name: String,
-	artist: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: "Artist",
-	},
+	artists: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Artist",
+		},
+	],
 	cover: String,
 	genres: [
 		{

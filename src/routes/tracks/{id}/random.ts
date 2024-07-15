@@ -61,13 +61,13 @@ export default (express: Application) =>
 				{
 					$lookup: {
 						from: "artists",
-						localField: "album.artist",
+						localField: "album.artists",
 						foreignField: "_id",
-						as: "artist",
+						as: "artists",
 					},
 				},
 				{
-					$unwind: "$artist",
+					$unwind: "$artists",
 				},
 				{
 					$match: {

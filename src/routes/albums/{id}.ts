@@ -17,7 +17,7 @@ export default (express: Application) =>
 			}
 
 			const album = await Album.findById(request.params.id).populate(
-				"artist"
+				"artists"
 			)
 
 			if (!album) {
