@@ -138,7 +138,7 @@ describe("Admin", () => {
 			.field("genres", [genreId])
 			.expect(400)
 
-		expect(response.body.message).toBe("Artist is required")
+		expect(response.body.message).toBe("Artist(s) are required")
 	})
 
 	test("POST /admin/album - Missing file", async () => {
@@ -219,7 +219,7 @@ describe("Admin", () => {
 			.attach("file", "test_data/audio.mp3")
 			.expect(400)
 
-		expect(response.body.message).toBe("Invalid artist id")
+		expect(response.body.message).toBe("Artist(s) are required")
 	})
 
 	test("POST /admin/track - Missing file", async () => {
