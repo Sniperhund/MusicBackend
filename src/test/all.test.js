@@ -528,6 +528,41 @@ describe("Artists", () => {
 
 		expect(response.body.response.length).toBe(2)
 	})
+
+	test("GET /artists/:id/albums - Missing authorization", async () => {
+		const response = await request
+			.get("/artists/" + artistId + "/albums")
+			.expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /artists/:id/albums - Missing id", async () => {
+		const response = await request
+			.get("/artists/1/albums")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /artists/:id/albums - Correct limited to 1", async () => {
+		const response = await request
+			.get("/artists/" + artistId + "/albums?limit=1")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /artists/:id/albums - Correct not limited", async () => {
+		const response = await request
+			.get("/artists/" + artistId + "/albums")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
 })
 
 describe("Auth", () => {
