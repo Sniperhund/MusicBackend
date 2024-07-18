@@ -493,6 +493,41 @@ describe("Artists", () => {
 
 		expect(response.body.response._id).toBe(artistId)
 	})
+
+	test("GET /artists/:id/tracks - Missing authorization", async () => {
+		const response = await request
+			.get("/artists/" + artistId + "/tracks")
+			.expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /artists/:id/tracks - Missing id", async () => {
+		const response = await request
+			.get("/artists/1/tracks")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /artists/:id/tracks - Correct limited to 1", async () => {
+		const response = await request
+			.get("/artists/" + artistId + "/tracks?limit=1")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(1)
+	})
+
+	test("GET /artists/:id/tracks - Correct not limited", async () => {
+		const response = await request
+			.get("/artists/" + artistId + "/tracks")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.length).toBe(2)
+	})
 })
 
 describe("Auth", () => {
