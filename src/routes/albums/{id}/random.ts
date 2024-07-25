@@ -28,28 +28,30 @@ export default (express: Application) =>
 			}
 
 			const pipeline = [
-				{ $match: { genres: genreId } },
-				{ $sample: { size: limit } },
+				{
+					$match: {
+						genres: genreId,
+					},
+				},
+				{
+					$sample: {
+						size: limit,
+					},
+				},
 				{
 					$lookup: {
 						from: "artists",
 						localField: "artists",
 						foreignField: "_id",
-						as: "artistInfo",
+						as: "artists",
 					},
 				},
-				{ $unwind: "$artistInfo" },
 				{
-					$project: {
-						_id: 1,
-						name: 1,
-						cover: 1,
-						genres: 1,
-						artists: {
-							_id: "$artistInfo._id",
-							name: "$artistInfo.name",
-							cover: "$artistInfo.cover",
-						},
+					$lookup: {
+						from: "genres",
+						localField: "genres",
+						foreignField: "_id",
+						as: "genres",
 					},
 				},
 			]
