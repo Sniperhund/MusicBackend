@@ -1076,3 +1076,29 @@ describe("User", () => {
 		expect(user.body.response.length).toBe(0)
 	})
 })
+
+describe("Delete", () => {
+	test("DELETE /admin/album - Missing authorization", async () => {
+		const response = await request.delete("/admin/album").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("DELETE /admin/album - Missing id", async () => {
+		const response = await request
+			.delete("/admin/album")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("DELETE /admin/album - Correct", async () => {
+		const response = await request
+			.delete("/admin/album?id=" + albumId)
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+	})
+})
