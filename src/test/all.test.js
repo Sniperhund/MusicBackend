@@ -180,6 +180,43 @@ describe("Admin", () => {
 		albumId = response.body.response._id
 	})
 
+	test("PUT /admin/album - Missing authorization", async () => {
+		const response = await request.put("/admin/album").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("PUT /admin/album - Missing id", async () => {
+		const response = await request
+			.put("/admin/album")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("PUT /admin/album - Wrong id", async () => {
+		const response = await request
+			.put("/admin/album?id=66a3f710b092d8601ef11b79")
+			.set("Authorization", accessToken)
+			.expect(404)
+
+		expect(response.body.message).toBe("Album not found")
+	})
+
+	test("PUT /admin/album - Correct", async () => {
+		const response = await request
+			.put("/admin/album?id=" + albumId)
+			.set("Authorization", accessToken)
+			.field("name", "Test")
+			.field("artist", artistId)
+			.attach("file", "test_data/image.png")
+			.field("genres", [genreId])
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+	})
+
 	test("POST /admin/track - Missing authorization", async () => {
 		const response = await request.post("/admin/track").expect(401)
 
