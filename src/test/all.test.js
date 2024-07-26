@@ -136,6 +136,40 @@ describe("Admin", () => {
 		genreId = response.body.response._id
 	})
 
+	test("PUT /admin/genre - Missing authorization", async () => {
+		const response = await request.put("/admin/genre").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("PUT /admin/genre - Missing id", async () => {
+		const response = await request
+			.put("/admin/genre")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("PUT /admin/genre - Wrong id", async () => {
+		const response = await request
+			.put("/admin/genre?id=66a3f710b092d8601ef11b79")
+			.set("Authorization", accessToken)
+			.expect(404)
+
+		expect(response.body.message).toBe("Genre not found")
+	})
+
+	test("PUT /admin/genre - Correct", async () => {
+		const response = await request
+			.put("/admin/genre?id=" + genreId)
+			.set("Authorization", accessToken)
+			.field("name", "Test")
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+	})
+
 	test("POST /admin/genre - Duplicate", async () => {
 		const response = await request
 			.post("/admin/genre")
