@@ -394,6 +394,65 @@ paths:
                     description: Forbidden
                 "500":
                     description: Internal server error
+        put:
+            summary: Update a track
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                album:
+                                    type: string
+                                artists:
+                                    type: array
+                                    description: String ids
+                                file:
+                                    type: file
+                                    format: binary
+                                    description: audio/*
+                            required:
+                                - name
+                                - album
+                                - artists
+                                - file
+                        encoding:
+                            file:
+                                contentType: audio/*
+        delete:
+            summary: Delete a track
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Track deleted
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
     /albums:
         get:
             summary: Get multiple albums by giving ids
