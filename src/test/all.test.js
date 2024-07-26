@@ -354,6 +354,43 @@ describe("Admin", () => {
 
 		trackId = response.body.response._id
 	})
+
+	test("PUT /admin/track - Missing authorization", async () => {
+		const response = await request.put("/admin/track").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("PUT /admin/track - Missing id", async () => {
+		const response = await request
+			.put("/admin/track")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("PUT /admin/track - Wrong id", async () => {
+		const response = await request
+			.put("/admin/track?id=66a3f710b092d8601ef11b79")
+			.set("Authorization", accessToken)
+			.expect(404)
+
+		expect(response.body.message).toBe("Track not found")
+	})
+
+	test("PUT /admin/track - Correct", async () => {
+		const response = await request
+			.put("/admin/track?id=" + trackId)
+			.set("Authorization", accessToken)
+			.field("name", "Test")
+			.field("album", albumId)
+			.field("artist", artistId)
+			.attach("file", "test_data/audio.mp3")
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+	})
 })
 
 describe("Albums", () => {
