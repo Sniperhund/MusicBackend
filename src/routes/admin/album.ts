@@ -1,7 +1,7 @@
 import { Application, Request, Response, response } from "express"
 import { Resource } from "express-automatic-routes"
 import { albumCoverUpload } from "../../middleware/upload"
-import { Album } from "../../schemas"
+import { Album, Track } from "../../schemas"
 import auth from "../../middleware/auth"
 import cleanFile from "../../utils/cleanFile"
 import mongoose from "mongoose"
@@ -193,6 +193,52 @@ export default (express: Application) =>
 				response.status(200).json({
 					status: "ok",
 					response: updatedAlbum,
+				})
+			},
+		},
+		delete: {
+			middleware: [auth],
+			handler: async (request: Request, response: Response) => {
+				if (request.body.user.role != "admin") {
+					return response.status(403).json({
+						status: "error",
+						message: "Unauthorized",
+					})
+				}
+
+				if (
+					!mongoose.Types.ObjectId.isValid(request.query.id as string)
+				) {
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid id",
+					})
+				}
+
+				const album = await Album.findById(request.query.id)
+
+				if (!album) {
+					return response.status(404).json({
+						status: "error",
+						message: "Album not found",
+					})
+				}
+
+				cleanFile(getFilePath("album", album.cover as string))
+
+				await Album.findByIdAndDelete(album._id)
+
+				const tracks = await Track.find({ album: album._id })
+
+				for (const track of tracks) {
+					cleanFile(getFilePath("track", track.audioFile as string))
+				}
+
+				await Track.deleteMany({ album: album._id })
+
+				response.status(200).json({
+					status: "ok",
+					message: "Album deleted",
 				})
 			},
 		},
