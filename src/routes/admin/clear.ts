@@ -1,12 +1,13 @@
 import { Application, Request, Response, response } from "express"
 import { Resource } from "express-automatic-routes"
-import { artistCoverUpload } from "../../middleware/upload"
 import { Artist, Album, Track, Genre, User } from "../../schemas"
+import fs from "fs"
+
+const uploadDir = process.env.UPLOAD_DIR || "public"
 
 export default (express: Application) =>
 	<Resource>{
 		get: {
-			middleware: [artistCoverUpload.single("file")],
 			handler: async (request: Request, response: Response) => {
 				if (process.env.TEST) {
 					await Promise.all([
@@ -17,6 +18,8 @@ export default (express: Application) =>
 						User.deleteMany({}),
 						// Add other models as necessary
 					])
+
+					await fs.rmSync(uploadDir, { recursive: true, force: true })
 
 					return response.status(200).json({
 						status: "ok",
