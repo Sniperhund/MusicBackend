@@ -113,7 +113,11 @@ export default (express: Application) =>
 		put: {
 			middleware: [albumCoverUpload.single("file"), auth],
 			handler: async (request: Request, response: Response) => {
+				const newFileLocation = request.file?.path as string
+
 				if (request.body.user.role != "admin") {
+					cleanFile(newFileLocation)
+
 					return response.status(403).json({
 						status: "error",
 						message: "Unauthorized",
@@ -123,6 +127,8 @@ export default (express: Application) =>
 				if (
 					!mongoose.Types.ObjectId.isValid(request.query.id as string)
 				) {
+					cleanFile(newFileLocation)
+
 					return response.status(400).json({
 						status: "error",
 						message: "Invalid id",
@@ -132,13 +138,13 @@ export default (express: Application) =>
 				const album = await Album.findById(request.query.id)
 
 				if (!album) {
+					cleanFile(newFileLocation)
+
 					return response.status(404).json({
 						status: "error",
 						message: "Album not found",
 					})
 				}
-
-				const newFileLocation = request.file?.path as string
 
 				if (newFileLocation) {
 					const oldFileLocation = album.cover
