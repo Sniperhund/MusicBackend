@@ -201,6 +201,55 @@ paths:
                     description: Forbidden
                 "500":
                     description: Internal server error
+        put:
+            summary: Update an artist
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                file:
+                                    type: file
+                                    format: binary
+                                    description: image/*
+                        encoding:
+                            file:
+                                contentType: image/*
+        delete:
+            summary: Delete an artist
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Artist deleted
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
     /admin/clear:
         get:
             summary: Clear all data
