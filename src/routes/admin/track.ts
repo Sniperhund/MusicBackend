@@ -7,6 +7,7 @@ import Ffmpeg from "fluent-ffmpeg"
 import cleanFile from "../../utils/cleanFile"
 import mongoose from "mongoose"
 import logError from "../../utils/logError"
+import getFilePath from "../../utils/getFilePath"
 
 const uploadDir = process.env.UPLOAD_DIR || "public"
 
@@ -130,6 +131,133 @@ export default (express: Application) =>
 				response.status(201).json({
 					status: "ok",
 					response: track,
+				})
+			},
+		},
+		put: {
+			middleware: [trackUpload.single("file"), auth],
+			handler: async (request: Request, response: Response) => {
+				const newFileLocation = request.file?.path as string
+
+				if (request.body.user.role != "admin") {
+					cleanFile(newFileLocation)
+
+					return response.status(403).json({
+						status: "error",
+						message: "Unauthorized",
+					})
+				}
+
+				if (
+					!mongoose.Types.ObjectId.isValid(request.query.id as string)
+				) {
+					cleanFile(newFileLocation)
+
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid id",
+					})
+				}
+
+				const track = await Track.findById(request.query.id)
+
+				if (!track) {
+					cleanFile(newFileLocation)
+
+					return response.status(404).json({
+						status: "error",
+						message: "Track not found",
+					})
+				}
+
+				if (newFileLocation) {
+					const oldFileLocation = track.audioFile
+
+					track.audioFile = request.file?.filename
+
+					cleanFile(getFilePath("track", oldFileLocation as string))
+				}
+
+				if (request.body.name) track.name = request.body.name
+				if (request.body.album) track.album = request.body.album
+
+				let artists = request.body.artists
+				const artist = request.body.artist
+
+				if (artists) {
+					if (!Array.isArray(artists)) {
+						return response.status(400).json({
+							status: "error",
+							message: "Artists must be an array",
+						})
+					}
+
+					for (let id of artists) {
+						if (!mongoose.Types.ObjectId.isValid(id)) {
+							return response.status(400).json({
+								status: "error",
+								message: "Invalid artist",
+							})
+						}
+					}
+				} else {
+					if (!mongoose.Types.ObjectId.isValid(artist)) {
+						return response.status(400).json({
+							status: "error",
+							message: "Invalid artist",
+						})
+					}
+
+					artists = [artist]
+				}
+
+				if (artists) track.artists = artists
+
+				await track.save()
+
+				const updatedTrack = await Track.findById(track._id)
+					.populate("album")
+					.populate("artists")
+
+				response.status(200).json({
+					status: "ok",
+					response: updatedTrack,
+				})
+			},
+		},
+		delete: {
+			middleware: [auth],
+			handler: async (request: Request, response: Response) => {
+				if (request.body.user.role != "admin") {
+					return response.status(403).json({
+						status: "error",
+						message: "Unauthorized",
+					})
+				}
+
+				if (
+					!mongoose.Types.ObjectId.isValid(request.query.id as string)
+				) {
+					return response.status(400).json({
+						status: "error",
+						message: "Invalid id",
+					})
+				}
+
+				const track = await Track.findById(request.query.id)
+
+				if (!track) {
+					return response.status(404).json({
+						status: "error",
+						message: "Track not found",
+					})
+				}
+
+				await Track.findByIdAndDelete(request.query.id)
+
+				response.status(200).json({
+					status: "ok",
+					message: "Track deleted",
 				})
 			},
 		},
