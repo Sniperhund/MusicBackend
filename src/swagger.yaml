@@ -302,6 +302,50 @@ paths:
                     description: Forbidden
                 "500":
                     description: Internal server error
+        put:
+            summary: Update a genre
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                            required:
+                                - name
+        delete:
+            summary: Delete a genre
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Genre deleted
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
     /admin/track:
         post:
             summary: Add a track
