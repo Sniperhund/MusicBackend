@@ -74,7 +74,7 @@ paths:
                                 artists:
                                     type: array
                                     description: String ids
-                                cover:
+                                file:
                                     type: file
                                     format: binary
                                     description: image/*
@@ -84,10 +84,10 @@ paths:
                             required:
                                 - name
                                 - artists
-                                - cover
+                                - file
                                 - genres
                         encoding:
-                            cover:
+                            file:
                                 contentType: image/*
             responses:
                 "201":
@@ -104,6 +104,62 @@ paths:
                     description: Forbidden
                 "500":
                     description: Internal server error
+        put:
+            summary: Update an album
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    multipart/form-data:
+                        schema:
+                            type: object
+                            properties:
+                                name:
+                                    type: string
+                                artists:
+                                    type: array
+                                    description: String ids
+                                file:
+                                    type: file
+                                    format: binary
+                                    description: image/*
+                                genres:
+                                    type: array
+                                    description: String ids 
+                        encoding:
+                            file:
+                                contentType: image/*
+        delete:
+            summary: Delete an album
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: id
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Album deleted
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
+                    
     /admin/artist:
         post:
             summary: Add an artist
