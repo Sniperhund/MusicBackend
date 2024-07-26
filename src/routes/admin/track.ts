@@ -30,17 +30,20 @@ export default (express: Application) =>
 		post: {
 			middleware: [trackUpload.single("file"), auth],
 			handler: async (request: Request, response: Response) => {
+				const fileLocation = request.file?.path as string
+
 				if (request.body.user.role != "admin") {
+					cleanFile(fileLocation)
+
 					return response.status(403).json({
 						status: "error",
 						message: "Unauthorized",
 					})
 				}
 
-				const fileLocation = request.file?.path as string
-
 				if (!request.body.name) {
 					cleanFile(fileLocation)
+
 					return response.status(400).json({
 						status: "error",
 						message: "Name is required",
@@ -49,6 +52,7 @@ export default (express: Application) =>
 
 				if (!mongoose.Types.ObjectId.isValid(request.body.album)) {
 					cleanFile(fileLocation)
+
 					return response.status(400).json({
 						status: "error",
 						message: "Invalid album id",
@@ -60,6 +64,7 @@ export default (express: Application) =>
 
 				if (!(artists || artist)) {
 					cleanFile(fileLocation)
+
 					return response.status(400).json({
 						status: "error",
 						message: "Artist(s) are required",
@@ -69,6 +74,7 @@ export default (express: Application) =>
 				if (artists) {
 					if (!Array.isArray(artists)) {
 						cleanFile(fileLocation)
+
 						return response.status(400).json({
 							status: "error",
 							message: "Artists must be an array",
@@ -78,6 +84,7 @@ export default (express: Application) =>
 					for (let id of artists) {
 						if (!mongoose.Types.ObjectId.isValid(id)) {
 							cleanFile(fileLocation)
+
 							return response.status(400).json({
 								status: "error",
 								message: "Invalid artist",
@@ -87,6 +94,7 @@ export default (express: Application) =>
 				} else {
 					if (!mongoose.Types.ObjectId.isValid(artist)) {
 						cleanFile(fileLocation)
+
 						return response.status(400).json({
 							status: "error",
 							message: "Invalid artist",
