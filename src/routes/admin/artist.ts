@@ -10,17 +10,20 @@ export default (express: Application) =>
 		post: {
 			middleware: [artistCoverUpload.single("file"), auth],
 			handler: async (request: Request, response: Response) => {
+				const fileLocation = request.file?.path as string
+
 				if (request.body.user.role != "admin") {
+					cleanFile(fileLocation)
+
 					return response.status(403).json({
 						status: "error",
 						message: "Unauthorized",
 					})
 				}
 
-				const fileLocation = request.file?.path as string
-
 				if (!request.body.name) {
 					cleanFile(fileLocation)
+
 					return response.status(400).json({
 						status: "error",
 						message: "Name is required",
@@ -29,6 +32,7 @@ export default (express: Application) =>
 
 				if (!request.file) {
 					cleanFile(fileLocation)
+
 					return response.status(400).json({
 						status: "error",
 						message: "Cover is required",
