@@ -74,6 +74,41 @@ describe("Admin", () => {
 		artistId = response.body.response._id
 	})
 
+	test("PUT /admin/artist - Missing authorization", async () => {
+		const response = await request.put("/admin/artist").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("PUT /admin/artist - Missing id", async () => {
+		const response = await request
+			.put("/admin/artist")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("PUT /admin/artist - Wrong id", async () => {
+		const response = await request
+			.put("/admin/artist?id=66a3f710b092d8601ef11b79")
+			.set("Authorization", accessToken)
+			.expect(404)
+
+		expect(response.body.message).toBe("Artist not found")
+	})
+
+	test("PUT /admin/artist - Correct", async () => {
+		const response = await request
+			.put("/admin/artist?id=" + artistId)
+			.set("Authorization", accessToken)
+			.field("name", "Test")
+			.attach("file", "test_data/image.png")
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+	})
+
 	test("POST /admin/genre - Missing authorization", async () => {
 		const response = await request.post("/admin/genre").expect(401)
 
@@ -1074,31 +1109,5 @@ describe("User", () => {
 			.expect(200)
 
 		expect(user.body.response.length).toBe(0)
-	})
-})
-
-describe("Delete", () => {
-	test("DELETE /admin/album - Missing authorization", async () => {
-		const response = await request.delete("/admin/album").expect(401)
-
-		expect(response.body.message).toBe("Unauthorized")
-	})
-
-	test("DELETE /admin/album - Missing id", async () => {
-		const response = await request
-			.delete("/admin/album")
-			.set("Authorization", accessToken)
-			.expect(400)
-
-		expect(response.body.message).toBe("Invalid id")
-	})
-
-	test("DELETE /admin/album - Correct", async () => {
-		const response = await request
-			.delete("/admin/album?id=" + albumId)
-			.set("Authorization", accessToken)
-			.expect(200)
-
-		expect(response.body.status).toBe("ok")
 	})
 })
