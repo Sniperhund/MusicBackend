@@ -59,6 +59,7 @@ export default (express: Application) =>
 				const artist = request.body.artist
 
 				if (!(artists || artist)) {
+					cleanFile(fileLocation)
 					return response.status(400).json({
 						status: "error",
 						message: "Artist(s) are required",
@@ -67,6 +68,7 @@ export default (express: Application) =>
 
 				if (artists) {
 					if (!Array.isArray(artists)) {
+						cleanFile(fileLocation)
 						return response.status(400).json({
 							status: "error",
 							message: "Artists must be an array",
@@ -75,6 +77,7 @@ export default (express: Application) =>
 
 					for (let id of artists) {
 						if (!mongoose.Types.ObjectId.isValid(id)) {
+							cleanFile(fileLocation)
 							return response.status(400).json({
 								status: "error",
 								message: "Invalid artist",
@@ -83,6 +86,7 @@ export default (express: Application) =>
 					}
 				} else {
 					if (!mongoose.Types.ObjectId.isValid(artist)) {
+						cleanFile(fileLocation)
 						return response.status(400).json({
 							status: "error",
 							message: "Invalid artist",
@@ -94,6 +98,7 @@ export default (express: Application) =>
 
 				if (!request.file) {
 					cleanFile(fileLocation)
+
 					return response.status(400).json({
 						status: "error",
 						message: "File is required",
