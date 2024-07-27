@@ -113,7 +113,7 @@ export default (express: Application) =>
 					})
 				}
 
-				if (await Album.find({ genres: genre._id })) {
+				if ((await Album.find({ genres: genre._id })).length != 0) {
 					return response.status(400).json({
 						status: "error",
 						message: "Genre is in use",

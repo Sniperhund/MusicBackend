@@ -134,11 +134,9 @@ export default (express: Application) =>
 					})
 				}
 
-				console.log(await Album.find({ artists: artist._id }))
-
 				if (
-					(await Album.find({ artists: artist._id })) ||
-					(await Track.find({ artists: artist._id }))
+					(await Album.find({ artists: artist._id })).length != 0 ||
+					(await Track.find({ artists: artist._id })).length != 0
 				) {
 					return response.status(400).json({
 						status: "error",
