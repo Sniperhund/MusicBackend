@@ -19,9 +19,26 @@ export default (express: Application) =>
 				})
 			}
 
+			const offset = request.query.offset
+				? parseInt(request.query.offset as string)
+				: 0
+
+			if (isNaN(offset) || offset < 0) {
+				return response.status(400).json({
+					status: "error",
+					message: "Invalid offset",
+				})
+			}
+
 			const savedTracksIds = await User.findById(request.body.user._id)
 				.select("savedTracks")
-				.populate("savedTracks")
+				.populate({
+					path: "savedTracks",
+					options: {
+						limit: limit,
+						skip: offset,
+					},
+				})
 
 			if (!savedTracksIds)
 				return response.status(400).json({
@@ -37,7 +54,7 @@ export default (express: Application) =>
 
 			const savedAlbums = await Album.find({
 				_id: { $in: albumIds },
-			}).limit(limit)
+			}).populate("artists")
 
 			response.status(200).json({
 				status: "ok",
