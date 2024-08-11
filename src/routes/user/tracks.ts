@@ -39,6 +39,12 @@ export default (express: Application) =>
 						limit: limit,
 						skip: offset,
 					},
+					populate: {
+						path: "artists album",
+						options: {
+							strictPopulate: false,
+						},
+					},
 				})
 
 			if (!savedTracks) {
