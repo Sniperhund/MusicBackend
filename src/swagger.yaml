@@ -453,6 +453,98 @@ paths:
                     description: Forbidden
                 "500":
                     description: Internal server error
+    /admin/lyrics:
+        post:
+            summary: Add lyrics to a track
+            tags:
+                - admin
+            security:
+                - auth: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                songId:
+                                    type: string
+                                synced:
+                                    type: boolean
+                                lyrics:
+                                    type: string
+                                    description: |
+                                        If the lyrics is synced you need to use the LRC format
+                                        https://en.wikipedia.org/wiki/LRC_(file_format)
+                            required:
+                                - songId
+                                - synced
+                                - lyrics
+            responses:
+                "201":
+                    description: Lyrics added
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Lyrics"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
+        put:
+            summary: Update lyrics
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: songId
+                  schema:
+                    type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                synced:
+                                    type: boolean
+                                lyrics:
+                                    type: string
+                                    description: |
+                                        If the lyrics is synced you need to use the LRC format
+                                        https://en.wikipedia.org/wiki/LRC_(file_format)
+                            required:
+                                - synced
+                                - lyrics
+        delete:
+            summary: Delete lyrics
+            tags:
+                - admin
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: songId
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Lyrics deleted
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "403":
+                    description: Forbidden
+                "500":
+                    description: Internal server error
     /albums:
         get:
             summary: Get multiple albums by giving ids
@@ -1477,4 +1569,15 @@ components:
                 _id:
                     type: string
                 name:
+                    type: string
+        Lyrics:
+            type: object
+            properties:
+                _id:
+                    type: string
+                songId:
+                    type: string
+                synced:
+                    type: boolean
+                lyrics:
                     type: string
