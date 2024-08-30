@@ -932,6 +932,122 @@ describe("Tracks", () => {
 	})
 })
 
+describe("Lyrics", () => {
+	let lyricsId
+
+	test("POST /admin/lyrics - Missing authorization", async () => {
+		const response = await request.post("/admin/lyrics").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("POST /admin/lyrics - Missing id", async () => {
+		const response = await request
+			.post("/admin/lyrics")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid song id")
+	})
+
+	test("POST /admin/lyrics - Missing lyrics", async () => {
+		const response = await request
+			.post("/admin/lyrics")
+			.set("Authorization", accessToken)
+			.field("songId", trackId)
+			.field("synced", false)
+			.expect(400)
+
+		expect(response.body.message).toBe("Lyrics is required")
+	})
+
+	test("POST /admin/lyrics - Missing synced", async () => {
+		const response = await request
+			.post("/admin/lyrics")
+			.set("Authorization", accessToken)
+			.field("songId", trackId)
+			.field("lyrics", "Test")
+			.expect(400)
+
+		expect(response.body.message).toBe("Synced is required")
+	})
+
+	test("POST /admin/lyrics - Correct", async () => {
+		const response = await request
+			.post("/admin/lyrics")
+			.set("Authorization", accessToken)
+			.field("songId", trackId)
+			.field("lyrics", "Test")
+			.field("synced", false)
+			.expect(201)
+
+		expect(response.body.response).toHaveProperty("_id")
+
+		lyricsId = response.body.response._id
+	})
+
+	test("PUT /admin/lyrics - Missing authorization", async () => {
+		const response = await request.put("/admin/lyrics").expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("PUT /admin/lyrics - Missing id", async () => {
+		const response = await request
+			.put("/admin/lyrics")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("PUT /admin/lyrics - Wrong id", async () => {
+		const response = await request
+			.put("/admin/lyrics?id=66a3f710b092d8601ef11b79")
+			.set("Authorization", accessToken)
+			.expect(404)
+
+		expect(response.body.message).toBe("Lyrics not found")
+	})
+
+	test("PUT /admin/lyrics - Correct", async () => {
+		const response = await request
+			.put("/admin/lyrics?id=" + trackId)
+			.set("Authorization", accessToken)
+			.field("lyrics", "[00:20.51] Synced test")
+			.field("synced", true)
+			.expect(200)
+
+		expect(response.body.status).toBe("ok")
+	})
+
+	test("GET /tracks/:id/lyrics - Missing authorization", async () => {
+		const response = await request
+			.get("/tracks/" + trackId + "/lyrics")
+			.expect(401)
+
+		expect(response.body.message).toBe("Unauthorized")
+	})
+
+	test("GET /tracks/:id/lyrics - Missing id", async () => {
+		const response = await request
+			.get("/tracks/1/lyrics")
+			.set("Authorization", accessToken)
+			.expect(400)
+
+		expect(response.body.message).toBe("Invalid id")
+	})
+
+	test("GET /tracks/:id/lyrics - Correct", async () => {
+		const response = await request
+			.get("/tracks/" + trackId + "/lyrics")
+			.set("Authorization", accessToken)
+			.expect(200)
+
+		expect(response.body.response.lyrics).toBe("[00:20.51] Synced test")
+	})
+})
+
 describe("User", () => {
 	test("POST /user/password - Missing authorization", async () => {
 		const response = await request.post("/user/password").expect(401)
