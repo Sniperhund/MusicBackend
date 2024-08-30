@@ -94,3 +94,15 @@ const artist = new mongoose.Schema({
 artist.index({ name: "text" })
 
 export const Artist = mongoose.model("Artist", artist)
+
+// Lyrics Schema
+const lyrics = new mongoose.Schema({
+	songId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "Track",
+	},
+	synced: Boolean,
+	lyrics: String,
+})
+
+export const Lyrics = mongoose.model("Lyrics", lyrics)

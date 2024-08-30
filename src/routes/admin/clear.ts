@@ -1,6 +1,6 @@
 import { Application, Request, Response, response } from "express"
 import { Resource } from "express-automatic-routes"
-import { Artist, Album, Track, Genre, User } from "../../schemas"
+import { Artist, Album, Track, Genre, User, Lyrics } from "../../schemas"
 import fs from "fs"
 
 const uploadDir = process.env.UPLOAD_DIR || "public"
@@ -16,6 +16,7 @@ export default (express: Application) =>
 						Track.deleteMany({}),
 						Genre.deleteMany({}),
 						User.deleteMany({}),
+						Lyrics.deleteMany({}),
 						// Add other models as necessary
 					])
 
