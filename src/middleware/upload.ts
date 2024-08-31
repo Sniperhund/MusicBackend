@@ -35,8 +35,8 @@ const albumCover = SharpMulter({
 		return uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
 	},
 	imageOptions: {
-		fileFormat: "jpg",
-		quality: 80,
+		fileFormat: "webp",
+		quality: 100,
 		resize: { width: 500, height: 500 },
 	},
 })
@@ -55,8 +55,8 @@ const artistCover = SharpMulter({
 		return uuid + currentFilename.slice(currentFilename.lastIndexOf("."))
 	},
 	imageOptions: {
-		fileFormat: "jpg",
-		quality: 80,
+		fileFormat: "webp",
+		quality: 100,
 		resize: { width: 500, height: 500 },
 	},
 })
