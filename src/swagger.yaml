@@ -1209,6 +1209,34 @@ paths:
                     description: Tracks not found
                 "500":
                     description: Internal server error
+    /tracks/{id}/lyrics:
+        get:
+            summary: Get lyrics from a track
+            tags:
+                - tracks
+            security:
+                - auth: []
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: Lyrics found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Lyrics"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Lyrics not found
+                "500":
+                    description: Internal server error
     /user:
         get:
             summary: Get user
