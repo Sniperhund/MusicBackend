@@ -1508,6 +1508,57 @@ paths:
                     description: Unauthorized
                 "500":
                     description: Internal server error
+    /search:
+        get:
+            summary: Search for entries
+            tags:
+                - search
+            security:
+                - auth: []
+            parameters:
+                - in: query
+                  name: q
+                  required: true
+                  schema:
+                    type: string
+                - in: query
+                  name: type
+                  schema:
+                    type: string
+                    enum:
+                      - track
+                      - album
+                      - artist
+                      - default
+                    default: default
+            responses:
+                "200":
+                    description: Entries found
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    tracks:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/Track"
+                                    albums:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/Album"
+                                    artists:
+                                        type: array
+                                        items:
+                                            $ref: "#/components/schemas/Artist"
+                "400":
+                    description: Bad request
+                "401":
+                    description: Unauthorized
+                "404":
+                    description: Entries not found
+                "500":
+                    description: Internal server error
 
 components:
     securitySchemes:
@@ -1609,3 +1660,4 @@ components:
                     type: boolean
                 lyrics:
                     type: string
+                

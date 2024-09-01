@@ -7,70 +7,115 @@ enum SearchType {
 	TRACK = "track",
 	ALBUM = "album",
 	ARTIST = "artist",
-	DEFAULT = "default",
+	DEFAULT = "default", // All of the above
 }
 
 export default (express: Application) =>
 	<Resource>{
 		middleware: [authenticate],
 		get: async (request: Request, response: Response) => {
-			let type: SearchType = request.query.type
-				? (request.query.type as SearchType)
-				: SearchType.DEFAULT
+			const { q: query, type } = request.query
 
-			let artistResult: any[] = []
-			let albumResult: any[] = []
-			let trackResult: any[] = []
+			if (!query) {
+				return response
+					.status(400)
+					.json({ error: "Query parameter is required" })
+			}
 
-			const limit = request.query.limit
-				? parseInt(request.query.limit as string)
-				: 12
+			const regex = new RegExp(query as string, "i") // Create a case-insensitive regex
+			let results: any[] = []
 
-			//TODO: Implement a better search function
 			switch (type) {
-				case SearchType.DEFAULT:
-					const nonTrackLimit = limit / 6
-
-					let tempResult: any[] = []
-
-					tempResult = await Artist.find({
-						$text: { $search: request.query.q as string },
-					}).limit(nonTrackLimit)
-					if (tempResult.length > 0) artistResult.push(...tempResult)
-
-					tempResult = await Album.find({
-						$text: { $search: request.query.q as string },
-					}).limit(nonTrackLimit)
-					if (tempResult.length > 0) albumResult.push(...tempResult)
-
-					tempResult = await Track.find({
-						$text: { $search: request.query.q as string },
-					}).limit(limit - nonTrackLimit * 2)
-					if (tempResult.length > 0) trackResult.push(...tempResult)
-
-					break
-				case SearchType.ARTIST:
-					artistResult = await Artist.find({
-						$text: { $search: request.query.q as string },
-					}).limit(limit)
+				case SearchType.TRACK:
+					results = await Track.find({
+						$or: [
+							{ name: { $regex: regex } },
+							{
+								$and: [
+									{ "album.name": { $regex: regex } },
+									{ name: { $regex: regex } },
+								],
+							},
+							{
+								$and: [
+									{ "artists.name": { $regex: regex } },
+									{ name: { $regex: regex } },
+								],
+							},
+						],
+					})
+						.populate("album")
+						.populate("artists")
 					break
 				case SearchType.ALBUM:
-					albumResult = await Album.find({
-						$text: { $search: request.query.q as string },
-					}).limit(limit)
+					results = await Album.find({
+						$or: [
+							{ name: { $regex: regex } },
+							{
+								$and: [
+									{ "artists.name": { $regex: regex } },
+									{ name: { $regex: regex } },
+								],
+							},
+						],
+					})
+						.populate("artists")
+						.populate("genres")
 					break
-				case SearchType.TRACK:
-					trackResult = await Track.find({
-						$text: { $search: request.query.q as string },
-					}).limit(limit)
+				case SearchType.ARTIST:
+					results = await Artist.find({ name: { $regex: regex } })
+					break
+				case SearchType.DEFAULT:
+				default:
+					const trackResults = await Track.find({
+						$or: [
+							{ name: { $regex: regex } },
+							{
+								$and: [
+									{ "album.name": { $regex: regex } },
+									{ name: { $regex: regex } },
+								],
+							},
+							{
+								$and: [
+									{ "artists.name": { $regex: regex } },
+									{ name: { $regex: regex } },
+								],
+							},
+						],
+					})
+						.populate("album")
+						.populate("artists")
+
+					const albumResults = await Album.find({
+						$or: [
+							{ name: { $regex: regex } },
+							{
+								$and: [
+									{ "artists.name": { $regex: regex } },
+									{ name: { $regex: regex } },
+								],
+							},
+						],
+					})
+						.populate("artists")
+						.populate("genres")
+
+					const artistResults = await Artist.find({
+						name: { $regex: regex },
+					})
+
+					results = [
+						...trackResults,
+						...albumResults,
+						...artistResults,
+					]
 					break
 			}
 
 			response.status(200).json({
 				status: "ok",
-				artistResult,
-				albumResult,
-				trackResult,
+				data: results,
 			})
 		},
 	}
