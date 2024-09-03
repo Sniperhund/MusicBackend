@@ -115,7 +115,7 @@ export default (express: Application) =>
 
 			response.status(200).json({
 				status: "ok",
-				data: results,
+				response: results,
 			})
 		},
 	}
