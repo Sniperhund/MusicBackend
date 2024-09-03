@@ -67,7 +67,7 @@ export default (express: Application) =>
 					break
 				case SearchType.DEFAULT:
 				default:
-					const trackResults = await Track.find({
+					let trackResults = await Track.find({
 						$or: [
 							{ name: { $regex: regex } },
 							{
@@ -87,7 +87,7 @@ export default (express: Application) =>
 						.populate("album")
 						.populate("artists")
 
-					const albumResults = await Album.find({
+					let albumResults = await Album.find({
 						$or: [
 							{ name: { $regex: regex } },
 							{
@@ -101,9 +101,24 @@ export default (express: Application) =>
 						.populate("artists")
 						.populate("genres")
 
-					const artistResults = await Artist.find({
+					let artistResults = await Artist.find({
 						name: { $regex: regex },
 					})
+
+					trackResults = trackResults.map((track: any) => ({
+						...track.toJSON(),
+						type: SearchType.TRACK,
+					}))
+
+					albumResults = albumResults.map((album: any) => ({
+						...album.toJSON(),
+						type: SearchType.ALBUM,
+					}))
+
+					artistResults = artistResults.map((artist: any) => ({
+						...artist.toJSON(),
+						type: SearchType.ARTIST,
+					}))
 
 					results = [
 						...trackResults,
