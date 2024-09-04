@@ -14,7 +14,7 @@ export default (express: Application) =>
 	<Resource>{
 		middleware: [authenticate],
 		get: async (request: Request, response: Response) => {
-			const { q: query, type } = request.query
+			const { q: query, type, limit } = request.query
 
 			if (!query) {
 				return response
@@ -125,6 +125,9 @@ export default (express: Application) =>
 						...albumResults,
 						...artistResults,
 					]
+
+					results = results.splice(0, parseInt(limit as string) || 0)
+
 					break
 			}
 
