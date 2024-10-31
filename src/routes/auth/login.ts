@@ -2,6 +2,7 @@ import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import { User } from "../../schemas"
 import { upload } from "../../middleware/upload"
+import bcrypt from "bcrypt"
 
 export default (express: Application) =>
 	<Resource>{
@@ -25,7 +26,10 @@ export default (express: Application) =>
 				email: request.body.email.toLowerCase(),
 			})
 
-			if (!user || user.password !== request.body.password) {
+			if (
+				!user ||
+				!bcrypt.compareSync(request.body.password, user.password!)
+			) {
 				return response.status(400).json({
 					status: "error",
 					message:

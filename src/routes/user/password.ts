@@ -5,6 +5,7 @@ import auth from "../../middleware/auth"
 import { upload } from "../../middleware/upload"
 import validator from "validator"
 import { v4 as uuidv4 } from "uuid"
+import bcrypt from "bcrypt"
 
 export default (express: Application) =>
 	<Resource>{
@@ -56,21 +57,33 @@ export default (express: Application) =>
 				})
 			}
 
-			if (user.password != request.body.oldPassword) {
+			if (!bcrypt.compareSync(request.body.oldPassword, user.password!)) {
 				return response.status(400).json({
 					status: "error",
 					message: "Password is incorrect",
 				})
 			}
 
-			if (request.body.oldPassword == request.body.newPassword) {
+			console.log(
+				bcrypt.compareSync(request.body.newPassword, user.password!)
+			)
+
+			if (bcrypt.compareSync(request.body.newPassword, user.password!)) {
 				return response.status(400).json({
 					status: "error",
 					message: "New password must be different from old password",
 				})
 			}
 
-			user.password = request.body.newPassword
+			let salt = await bcrypt.genSalt(10)
+			let hashedPassword = await bcrypt.hash(
+				request.body.newPassword,
+				salt
+			)
+
+			console.log("Password", hashedPassword)
+
+			user.password = hashedPassword
 			user.accessToken = uuidv4()
 			user.refreshToken = uuidv4()
 

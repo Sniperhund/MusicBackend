@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid"
 import validator from "validator"
 import { log } from "../../utils/logger"
 import { upload } from "../../middleware/upload"
+import bcrypt from "bcrypt"
 
 export default (express: Application) =>
 	<Resource>{
@@ -46,13 +47,22 @@ export default (express: Application) =>
 				})
 			}
 
+			const salt = await bcrypt.genSalt(10)
+
+			const hashedPassword = await bcrypt.hash(
+				request.body.password,
+				salt
+			)
+
+			log.info("Password hashed:", hashedPassword)
+
 			if (process.env.TEST) {
 				log.warn("Test mode is enabled")
 
 				let user = new User({
 					name: request.body.name,
 					email: request.body.email.toLowerCase(),
-					password: request.body.password,
+					password: hashedPassword,
 					verifyToken: uuidv4(),
 					accessToken: uuidv4(),
 					accessTokenExpire: new Date(
@@ -90,7 +100,7 @@ export default (express: Application) =>
 			user = new User({
 				name: request.body.name,
 				email: request.body.email.toLowerCase(),
-				password: request.body.password,
+				password: hashedPassword,
 				verifyToken: uuid,
 			})
 
