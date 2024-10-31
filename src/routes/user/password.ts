@@ -64,10 +64,6 @@ export default (express: Application) =>
 				})
 			}
 
-			console.log(
-				bcrypt.compareSync(request.body.newPassword, user.password!)
-			)
-
 			if (bcrypt.compareSync(request.body.newPassword, user.password!)) {
 				return response.status(400).json({
 					status: "error",
@@ -80,8 +76,6 @@ export default (express: Application) =>
 				request.body.newPassword,
 				salt
 			)
-
-			console.log("Password", hashedPassword)
 
 			user.password = hashedPassword
 			user.accessToken = uuidv4()

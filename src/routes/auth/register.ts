@@ -1,12 +1,12 @@
 import { Application, Request, Response } from "express"
 import { Resource } from "express-automatic-routes"
 import { User } from "../../schemas"
-import { Resend } from "resend"
 import { v4 as uuidv4 } from "uuid"
 import validator from "validator"
 import { log } from "../../utils/logger"
 import { upload } from "../../middleware/upload"
 import bcrypt from "bcrypt"
+import sendMail from "../../utils/email"
 
 export default (express: Application) =>
 	<Resource>{
@@ -53,8 +53,6 @@ export default (express: Application) =>
 				request.body.password,
 				salt
 			)
-
-			log.info("Password hashed:", hashedPassword)
 
 			if (process.env.TEST) {
 				log.warn("Test mode is enabled")
@@ -108,22 +106,12 @@ export default (express: Application) =>
 
 			const frontendUrl = request.body.frontendUrl
 
-			if (process.env.RESEND_API_KEY && frontendUrl) {
-				const resend = new Resend(process.env.RESEND_API_KEY)
-
-				resend.emails.send({
-					from: "noreply@lucasskt.dk",
+			if (frontendUrl) {
+				sendMail({
 					to: request.body.email,
 					subject: "Verify your email",
-					html:
-						'<p>Congrats on creating an account <a href="' +
-						frontendUrl +
-						"?q=" +
-						uuid +
-						'">Verify here.</a></p>',
+					html: `<p>Congrats on creating an account <a href="${frontendUrl}?q=${uuid}">Verify here.</a></p>`,
 				})
-			} else if (!process.env.RESEND_API_KEY) {
-				log.error("RESEND_API_KEY is not set")
 			} else if (!frontendUrl) {
 				log.error("Frontend URL is not set")
 			}
