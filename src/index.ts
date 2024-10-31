@@ -25,7 +25,7 @@ async function main() {
 	const port = process.env.PORT || 8000
 
 	app.use(cors())
-	app.use(express.static(process.env.UPLOAD_DIR))
+	app.use(express.static(uploadDir))
 	app.use(express.urlencoded({ extended: true }))
 	app.use(express.json())
 
@@ -72,7 +72,7 @@ async function main() {
 	})
 
 	app.listen(port, () => {
-		log.info(`Server is started at ${process.env.PUBLIC_URL}`)
+		log.info(`Server is started at ${port}`)
 	})
 }
 

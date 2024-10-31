@@ -22,7 +22,21 @@ export default (express: Application) =>
 					.json({ error: "Query parameter is required" })
 			}
 
-			const regex = new RegExp(query as string, "i") // Create a case-insensitive regex
+			// Escape special characters in the query string
+			const escapeRegExp = (string: string) => {
+				return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+			}
+
+			let regex: RegExp
+			try {
+				regex = new RegExp(escapeRegExp(query as string), "i") // Create a case-insensitive regex
+			} catch (e) {
+				console.error(e)
+				return response.status(400).json({
+					error: "Invalid regular expression in query parameter",
+				})
+			}
+
 			let results: any[] = []
 
 			switch (type) {
@@ -126,7 +140,10 @@ export default (express: Application) =>
 						...artistResults,
 					]
 
-					results = results.splice(0, parseInt(limit as string) || 0)
+					results = results.splice(
+						0,
+						parseInt(limit as string) || results.length
+					)
 
 					break
 			}
