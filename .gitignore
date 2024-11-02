@@ -4,3 +4,8 @@ dist/
 public/
 .env
 .DS_Store
+.fleet/
+.idea
+scripts/venv
+scripts/__pycache__
+scripts/.idea
