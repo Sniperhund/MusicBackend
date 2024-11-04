@@ -1,4 +1,4 @@
-import syncedlyrics, time
+import syncedlyrics, time, sys
 from util import *
 
 api = "https://api.lucasskt.dk/"
@@ -27,35 +27,40 @@ def getSearchTerm(song):
 def addLyrics():
     songs = session.get("all/tracks").json().get("response")
     for song in songs:
-        hasLyrics = checkIfSongHasLyrics(song.get("_id"))
-        if type(hasLyrics) == tuple and hasLyrics[0] == True:
-            if hasLyrics[1] == False:
-                print("Not synced")
+        addSpecificLyrics(song.get("_id"))
 
-                lrc = getLyrics(getSearchTerm(song))
 
-                response = session.put("/admin/lyrics?id=" + song.get("_id"),
-                                       json={"synced": True, "lyrics": lrc})
-
-                if response.status_code != 200:
-                    print(song)
-                    print(lrc)
-                    print(response.json())
-                    raise Exception("Something went wrong")
-        else:
-            print("No lyrics")
+def addSpecificLyrics(songId):
+    song = session.get("tracks/" + songId).json().get("response")
+    hasLyrics = checkIfSongHasLyrics(song.get("_id"))
+    if type(hasLyrics) == tuple and hasLyrics[0] == True:
+        if hasLyrics[1] == False:
+            print("Not synced")
 
             lrc = getLyrics(getSearchTerm(song))
 
-            response = session.post("/admin/lyrics",
-                                    json={"songId": song.get("_id"), "synced": True, "lyrics": lrc})
+            response = session.put("/admin/lyrics?id=" + song.get("_id"),
+                                   json={"synced": True, "lyrics": lrc})
 
             if response.status_code != 200:
                 print(song)
                 print(lrc)
                 print(response.json())
                 raise Exception("Something went wrong")
-        time.sleep(timeBetweenRequests)
+    else:
+        print("No lyrics")
+
+        lrc = getLyrics(getSearchTerm(song))
+
+        response = session.post("/admin/lyrics",
+                                json={"songId": song.get("_id"), "synced": True, "lyrics": lrc})
+
+        if response.status_code != 201:
+            print(song)
+            print(lrc)
+            print(response.json())
+            raise Exception("Something went wrong")
+    time.sleep(timeBetweenRequests)
 
 
 def getLyrics(searchTerm):
@@ -64,4 +69,7 @@ def getLyrics(searchTerm):
 
 
 if __name__ == "__main__":
-    addLyrics()
+    if len(sys.argv) > 1:
+        addSpecificLyrics(sys.argv[1])
+    else:
+        addLyrics()
