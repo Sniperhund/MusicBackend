@@ -4,7 +4,7 @@ from util import *
 api = "https://api.lucasskt.dk/"
 
 session = LiveServerSession(api)
-timeBetweenRequests = 20
+timeBetweenRequests = 30
 
 
 def checkIfSongHasLyrics(songId):
@@ -32,6 +32,7 @@ def addLyrics():
 
 def addSpecificLyrics(songId):
     song = session.get("tracks/" + songId).json().get("response")
+    print("Adding lyrics for song with name: " + song.get("name"))
     hasLyrics = checkIfSongHasLyrics(song.get("_id"))
     if type(hasLyrics) == tuple and hasLyrics[0] == True:
         if hasLyrics[1] == False:
@@ -47,6 +48,8 @@ def addSpecificLyrics(songId):
                 print(lrc)
                 print(response.json())
                 raise Exception("Something went wrong")
+        else:
+            print("Already synced")
     else:
         print("No lyrics")
 
@@ -72,4 +75,6 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         addSpecificLyrics(sys.argv[1])
     else:
-        addLyrics()
+        print("For the time being, this script only supports adding lyrics to a specific song by providing the song id as an argument")
+        print("Since it sometimes gets the wrong song, it is recommended to use the admin panel to add lyrics")
+        #addLyrics()
