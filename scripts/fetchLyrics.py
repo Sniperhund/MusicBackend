@@ -1,3 +1,5 @@
+#! /usr/bin/env python3
+
 import syncedlyrics, time, sys
 from util import *
 from colorama import Fore, Style
