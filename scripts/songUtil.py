@@ -54,7 +54,7 @@ def addAndConfirmLyrics(song, lrc):
                             json={"songId": song.get("_id"), "synced": True, "lyrics": lrc})
         elif isinstance(hasLyrics, tuple) and hasLyrics[0] == True and hasLyrics[1] == False:
             response = session.put("/admin/lyrics?id=" + song.get("_id"),
-                            json={"lyrics": lrc})
+                            json={"lyrics": lrc, "synced": True})
         else:
             print("Lyrics already synced or an error occurred")
             print("If you want to replace them, you can use the argument --replace-lyrics-with-own")
