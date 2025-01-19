@@ -2,6 +2,7 @@
 
 import syncedlyrics, time, sys, os
 from util import *
+from songUtil import *
 from colorama import Fore, Style
 from dotenv import load_dotenv
 
@@ -12,29 +13,14 @@ timeBetweenRequests = 30
 
 load_dotenv()
 
-def checkIfSongHasLyrics(songId):
-    songLyrics = session.get("/tracks/" + songId + "/lyrics")
-
-    if songLyrics.status_code == 200:
-        return True, songLyrics.json().get("response").get("synced")
-    return False
-
-def getSearchTerm(song):
-    artistNames = ""
-
-    for artist in song.get("artists"):
-        artistNames += artist.get("name") + " "
-
-    return song.get("name") + " " + artistNames
-
-def addLyrics():
+def addLyricsToAll():
     songs = session.get("all/tracks").json().get("response")
     for song in songs:
         addSpecificLyrics(song.get("_id"))
         time.sleep(timeBetweenRequests)
 
 def addSpecificLyrics(songId):
-    song = session.get("tracks/" + songId).json().get("response")
+    song = getSongData(songId)
     print("Adding lyrics for song with name: " + song.get("name"))
     hasLyrics = checkIfSongHasLyrics(song.get("_id"))
     if type(hasLyrics) == tuple and hasLyrics[0] == True:
@@ -47,15 +33,7 @@ def addSpecificLyrics(songId):
                 print("No lyrics found")
                 return
 
-            if confirmLyrics(song, lrc):
-                response = session.put("/admin/lyrics?id=" + song.get("_id"),
-                                    json={"synced": True, "lyrics": lrc})
-
-                if response.status_code != 200:
-                    print(song)
-                    print(lrc)
-                    print(response.json())
-                    raise Exception("Something went wrong")
+            addAndConfirmLyrics(song, lrc)
         else:
             print("Already synced")
     else:
@@ -67,64 +45,51 @@ def addSpecificLyrics(songId):
             print("No lyrics found")
             return
 
-        if confirmLyrics(song, lrc):
-            response = session.post("/admin/lyrics",
-                                json={"songId": song.get("_id"), "synced": True, "lyrics": lrc})
+        addAndConfirmLyrics(song, lrc)
 
-            if response.status_code != 201:
-                print(song)
-                print(lrc)
-                print(response.json())
-                raise Exception("Something went wrong")
+def addOwnLyrics():
+    id = searchSongId()
 
-def formatString(s):
-    return s.replace("\\n", "\n").replace("\\t", "\t")
-
-def confirmLyrics(song, lrc):
-    print(Fore.RED + "Lyrics:" + Style.RESET_ALL)
-    print(formatString(lrc))
-    print(Fore.RED + "Song information (on the backend):" + Style.RESET_ALL)
-    print(Fore.GREEN + "Name: " + Style.RESET_ALL + song.get("name"))
-    print(Fore.GREEN + "Artists: " + Style.RESET_ALL + ", ".join([artist.get("name") for artist in song.get("artists")]))
-    print(Fore.GREEN + "Album: " + Style.RESET_ALL + song.get("album").get("name"))
-
-    print("Do you want to add these lyrics? (y/n)")
-    answer = input()
-
-    if answer.lower() == "y":
-        return True
+    print("Enter your lyrics (type 'END' on a new line to finish):")
     
-    return False
+    # Collect multiline input
+    lines = []
+    while True:
+        line = input()
+        if line.strip().upper() == "END":  # Stop when user types "END"
+            break
+        lines.append(line)
 
-def searchSong():
-    searchTerm = input("Enter a search term: ")
+    lrc = "\n".join(lines)
 
-    response = session.get("/search?q=" + searchTerm)
+    song = getSongData(id)
 
-    if response.status_code != 200:
-        print(response.json())
-        raise Exception("Something went wrong")
+    addAndConfirmLyrics(song, lrc)
 
-    songs = response.json().get("response")
+def replaceLyricsWithOwn():
+    id = searchSongId()
 
-    if len(songs) == 0:
-        print("No songs found")
-        return
+    print("Enter your lyrics (type 'END' on a new line to finish):")
+    
+    # Collect multiline input
+    lines = []
+    while True:
+        line = input()
+        if line.strip().upper() == "END":  # Stop when user types "END"
+            break
+        lines.append(line)
 
-    for song in songs:
-        if song.get("type") != "track":
-            songs.remove(song)
+    lrc = "\n".join(lines)
 
-    for i, song in enumerate(songs):
-        print(str(i) + ": " + song.get("name") + " by " + ", ".join([artist.get("name") for artist in song.get("artists")]))
+    song = getSongData(id)
 
-    songIndex = int(input("Select a song by typing the number: "))
+    addAndConfirmLyrics(song, lrc)
 
-    addSpecificLyrics(songs[songIndex].get("_id"))
-
-def getLyrics(searchTerm):
-    lrc = syncedlyrics.search(searchTerm)
-    return lrc
+def printUsage():
+    print("Usage: python fetchLyrics.py --id <songId>")
+    print("Usage: python fetchLyrics.py --search")
+    print("Usage: python fetchLyrics.py --own-lyrics")
+    print("Usage: python fetchLyrics.py --replace-lyrics-with-own")
 
 if __name__ == "__main__":
     if os.getenv("REFRESH_TOKEN") == None and os.getenv("SIGNIN_INSTEAD") == None or os.getenv("SIGNIN_INSTEAD") == "true" and (os.getenv("EMAIL") == None or os.getenv("PASSWORD") == None):
@@ -142,15 +107,20 @@ if __name__ == "__main__":
 
     if len(sys.argv) == 1:
         print(Fore.RED + "Missing arguments" + Style.RESET_ALL)
-        print("Usage: python fetchLyrics.py --id <songId>")
-        print("Usage: python fetchLyrics.py --search")
+        printUsage()
+
     else:
         match sys.argv[1]:
             case "--id":
                 addSpecificLyrics(sys.argv[2])
             case "--search":
-                searchSong()
+                while True:
+                    addSpecificLyrics(searchSongId())
+                    os.system('cls||clear')
+            case "--own-lyrics":
+                addOwnLyrics()
+            case "--replace-lyrics-with-own":
+                replaceLyricsWithOwn()
             case _:
                 print(Fore.RED + "Invalid argument" + Style.RESET_ALL)
-                print("Usage: python fetchLyrics.py --id <songId>")
-                print("Usage: python fetchLyrics.py --search")
+                printUsage()

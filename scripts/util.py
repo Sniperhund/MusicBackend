@@ -2,6 +2,7 @@ from requests import Session
 from urllib.parse import urljoin
 import os
 from dotenv import load_dotenv
+import syncedlyrics, time, sys, os
 
 load_dotenv()
 refreshToken = os.getenv("REFRESH_TOKEN")
@@ -64,4 +65,26 @@ class LiveServerSession(Session):
         # Update kwargs headers
         kwargs['headers'] = headers
 
-        return super().request(method, joined_url, *args, **kwargs)
+        response = super().request(method, joined_url, *args, **kwargs)
+
+        if response.status_code == 401:
+            if os.getenv("SIGNIN_INSTEAD") == "true":
+                self.signin()
+            else:
+                self.refresh_token()
+
+            # Update Authorization header
+            headers['Authorization'] = accessToken
+
+            # Update kwargs headers
+            kwargs['headers'] = headers
+
+            response = super().request(method, joined_url, *args, **kwargs)
+
+        return response
+
+def formatString(s):
+    return s.replace("\\n", "\n").replace("\\t", "\t")
+
+def getLyrics(searchTerm):
+    return syncedlyrics.search(searchTerm)
