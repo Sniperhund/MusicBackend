@@ -89,7 +89,8 @@ export default (express: Application) =>
 					})
 				}
 
-				if (request.body.synced) lyrics.synced = request.body.synced
+				if (request.body.synced != undefined)
+					lyrics.synced = request.body.synced
 				if (request.body.lyrics) lyrics.lyrics = request.body.lyrics
 
 				await lyrics.save()
