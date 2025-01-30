@@ -85,11 +85,41 @@ def replaceLyricsWithOwn():
 
     addAndConfirmLyrics(song, lrc)
 
+def adjustAddedLyrics():
+    id = searchSongId()
+
+    hasLyrics = checkIfSongHasLyrics(id)
+
+    if not (isinstance(hasLyrics, tuple) and hasLyrics[0] == True and hasLyrics[1] == True):
+        print("No synced lyrics found")
+        return
+
+    offset = input("Enter the offset in milliseconds: ")
+
+    lrc = session.get("/tracks/" + id + "/lyrics").json().get("response").get("lyrics")
+
+    lrc = offsetLrc(lrc, offset)
+
+    print("New lyrics:")
+    print(lrc)
+
+    print("Do you want to update the lyrics? (y/n)")
+    answer = input()
+
+    if answer.lower() == "y":
+        response = session.put("/admin/lyrics?id=" + id,
+                                json={"lyrics": lrc, "synced": True})
+
+        if response.json().get("status") != "ok":
+            print(response.json())
+            raise Exception("Something went wrong")
+
 def printUsage():
     print("Usage: python fetchLyrics.py --id <songId>")
     print("Usage: python fetchLyrics.py --search")
     print("Usage: python fetchLyrics.py --own-lyrics")
     print("Usage: python fetchLyrics.py --replace-lyrics-with-own")
+    print("Usage: python fetchLyrics.py --adjust-added-lyrics")
 
 if __name__ == "__main__":
     if os.getenv("REFRESH_TOKEN") == None and os.getenv("SIGNIN_INSTEAD") == None or os.getenv("SIGNIN_INSTEAD") == "true" and (os.getenv("EMAIL") == None or os.getenv("PASSWORD") == None):
@@ -121,6 +151,8 @@ if __name__ == "__main__":
                 addOwnLyrics()
             case "--replace-lyrics-with-own":
                 replaceLyricsWithOwn()
+            case "--adjust-added-lyrics":
+                adjustAddedLyrics()
             case _:
                 print(Fore.RED + "Invalid argument" + Style.RESET_ALL)
                 printUsage()

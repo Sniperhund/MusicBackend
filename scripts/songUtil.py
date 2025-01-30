@@ -1,4 +1,4 @@
-import syncedlyrics, time, sys, os
+import syncedlyrics, time, sys, os, re
 from util import *
 from songUtil import *
 from colorama import Fore, Style
@@ -91,3 +91,44 @@ def searchSongId():
     songIndex = int(input("Select a song by typing the number: "))
 
     return songs[songIndex].get("_id")
+
+import re
+
+def offsetLrc(lrc, offset):
+    try:
+        offset = int(offset)  # Ensure offset is an integer
+    except ValueError:
+        raise TypeError("Offset must be an integer.")
+
+    def shift_timestamp(timestamp, offset):
+        match = re.match(r"\[(\d+):(\d+\.\d+)\]", timestamp)
+        if not match:
+            return timestamp  # Return unchanged if not a valid timestamp
+        
+        minutes, seconds = int(match.group(1)), float(match.group(2))
+        total_ms = (minutes * 60 + seconds) * 1000 + offset
+        
+        if total_ms < 0:
+            return None  # Skip negative timestamps
+        
+        new_minutes = int(total_ms // 60000)
+        new_seconds = (total_ms % 60000) / 1000
+        return f"[{new_minutes:02}:{new_seconds:05.2f}]"
+    
+    lrc_lines = lrc.split("\n")
+    adjusted_lines = []
+    
+    for line in lrc_lines:
+        matches = re.findall(r"\[\d+:\d+\.\d+\]", line)
+        
+        if matches:
+            new_timestamps = [shift_timestamp(ts, offset) for ts in matches]
+            new_timestamps = [ts for ts in new_timestamps if ts is not None]  # Remove invalid timestamps
+            
+            if new_timestamps:
+                lyrics_part = re.sub(r"\[\d+:\d+\.\d+\]", "", line).strip()
+                adjusted_lines.append("".join(new_timestamps) + " " + lyrics_part)
+        else:
+            adjusted_lines.append(line)  # Keep non-timestamped lines unchanged
+    
+    return "\n".join(adjusted_lines)
