@@ -8,6 +8,7 @@ import cleanFile from "../../utils/cleanFile"
 import mongoose from "mongoose"
 import logError from "../../utils/logError"
 import getFilePath from "../../utils/getFilePath"
+import { processAudio } from "../../utils/processFiles"
 
 const uploadDir = process.env.UPLOAD_DIR || "public"
 
@@ -128,6 +129,8 @@ export default (express: Application) =>
 
 				await track.save()
 
+				await processAudio(fileLocation)
+
 				response.status(201).json({
 					status: "ok",
 					response: track,
@@ -174,6 +177,8 @@ export default (express: Application) =>
 					const oldFileLocation = track.audioFile
 
 					track.audioFile = request.file?.filename
+
+					await processAudio(newFileLocation)
 
 					cleanFile(getFilePath("track", oldFileLocation as string))
 				}

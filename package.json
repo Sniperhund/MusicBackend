@@ -55,7 +55,11 @@
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
-			"bcrypt"
+			"bcrypt",
+			"@ffmpeg-installer/linux-x64",
+			"@swc/core",
+			"ffmpeg-static",
+			"sharp"
 		]
 	}
 }
