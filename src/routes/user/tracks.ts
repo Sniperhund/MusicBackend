@@ -122,6 +122,7 @@ export default (express: Application) =>
 
 			response.status(200).json({
 				status: "ok",
+				response: {},
 			})
 		},
 		delete: async (request: Request, response: Response) => {
@@ -180,6 +181,7 @@ export default (express: Application) =>
 
 			response.status(200).json({
 				status: "ok",
+				response: {},
 			})
 		},
 	}
