@@ -13,11 +13,15 @@ export default async function cleanFile(fileName: string) {
 	const fileDir = path.dirname(fileName)
 	const fileBaseName = path.basename(fileName).split(".")[0]
 
-	const outputLow = path.join(fileDir, `/low/${fileBaseName}.mp3`)
-	const outputMid = path.join(fileDir, `/mid/${fileBaseName}.mp3`)
+	const outputLowMp3 = path.join(fileDir, `/low/${fileBaseName}.mp3`)
+	const outputMidMp3 = path.join(fileDir, `/mid/${fileBaseName}.mp3`)
+	const outputLowAAC = path.join(fileDir, `/low-aac/${fileBaseName}.m4a`)
+	const outputMidAAC = path.join(fileDir, `/mid-aac/${fileBaseName}.m4a`)
 
-	internalCleanFile(outputLow)
-	internalCleanFile(outputMid)
+	internalCleanFile(outputLowMp3)
+	internalCleanFile(outputMidMp3)
+	internalCleanFile(outputLowAAC)
+	internalCleanFile(outputMidAAC)
 }
 
 const internalCleanFile = async (fileName: string) => {

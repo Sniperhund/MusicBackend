@@ -258,6 +258,8 @@ export default (express: Application) =>
 					})
 				}
 
+				if (track.audioFile) await cleanFile(track.audioFile)
+
 				await Track.findByIdAndDelete(request.query.id)
 
 				response.status(200).json({
