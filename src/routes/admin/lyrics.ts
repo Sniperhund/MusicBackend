@@ -83,10 +83,9 @@ export default (express: Application) =>
 				})
 
 				if (!lyrics) {
-					return response.status(404).json({
-						status: "error",
-						message: "Lyrics not found",
-					})
+                    lyrics = new Lyrics({
+                        songId: request.query.id as string
+                    })
 				}
 
 				if (request.body.synced != undefined)
